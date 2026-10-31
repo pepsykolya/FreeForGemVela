@@ -25,12 +25,12 @@ The miner binary is `ffgv` (`ffgv.exe` on Windows).
 
 | GPU (power limit) | mode | auto-UV | clocks the miner set | inf/s | W | inf/s/W |
 |---|---|---|---|---|---|---|
-| RTX 3070 (135 W) | speed (= stock) | no | — | 34.40 | 134.5 | 0.256 |
-| RTX 3070 (135 W) | balance | no | lock 1500 | 34.35 | 134.5 | 0.255 |
-| RTX 3070 (135 W) | eco | no | lock 1400, mem 5001 | 31.75 | 120.1 | 0.264 |
-| RTX 3070 (135 W) | speed | yes | core +225, mem +500 | 37.44 | 134.6 | 0.278 |
-| RTX 3070 (135 W) | balance | yes | lock 1500, core +210, mem +500 | 35.22 | 120.0 | 0.293 |
-| RTX 3070 (135 W) | eco | yes | lock 1400, mem 5001, core +300 | 31.43 | 95.9 | 0.328 |
+| RTX 3070 (200 W cap) | speed (= stock) | no | — (runs into the 200 W cap) | 39.34 | 199.4 | 0.197 |
+| RTX 3070 (200 W cap) | balance | no | lock 1500 | 35.29 | 147.2 | 0.240 |
+| RTX 3070 (200 W cap) | eco | no | lock 1400, mem 5001 | 31.88 | 123.6 | 0.258 |
+| RTX 3070 (200 W cap) | speed | yes | core +120 | 40.02 | 199.4 | 0.201 |
+| RTX 3070 (200 W cap) | balance | yes | lock 1500, core +165, mem +250 | 35.15 | 127.3 | 0.276 |
+| RTX 3070 (200 W cap) | eco | yes | lock 1400, mem 5001, core +195 | 31.52 | 105.2 | 0.300 |
 | RTX 4070 Ti (190 W) | speed (= stock) | no | — | 65.28 | 189.3 | 0.345 |
 | RTX 4070 Ti (190 W) | balance | no | lock 2250 | 64.14 | 179.2 | 0.358 |
 | RTX 4070 Ti (190 W) | eco | no | lock 2100, mem 5001 | 52.52 | 144.7 | 0.363 |
@@ -45,8 +45,7 @@ The miner binary is `ffgv` (`ffgv.exe` on Windows).
 | RTX 3080 Ti (350 W) | eco | yes | lock 1400, mem 5001, core +225 | 49.35 | 209.6 | 0.235 |
 | RTX 4070 Laptop (laptop limit) | stock | no | — | 30.05 | 67.9 | 0.443 |
 
-What the auto-undervolt adds: **RTX 3070** — `speed` +8.8% inf/s at the same power; `balance` +2.4% inf/s at −11% power
-(+15% inf/s/W); `eco` −8.6% inf/s at −29% power (**+28% inf/s/W**). **RTX 4070 Ti** runs at its power limit: the undervolt
+What the auto-undervolt adds: **RTX 3070** (power limit 200 W used only as a safety cap): `speed` has no clock lock and runs into the cap, the undervolt adds +1.7% inf/s at the same power; the clock locks of `balance` / `eco` cut the power by 26% / 38% for −10% / −19% inf/s, and the undervolt on top adds +15% / +16% inf/s/W, so against stock `balance` is +40% inf/s/W and `eco` **+52% inf/s/W**. **RTX 4070 Ti** runs at its power limit: the undervolt
 adds +3.7% in `speed`; in `balance` / `eco` the gain comes from the clock locks (up to +5% inf/s/W at −24% power), the
 undervolt on top changes little. **RTX 3080 Ti** (Windows): the clock locks give `balance` −7.5% inf/s at −21% power and
 `eco` −20% inf/s at −37% power; the undervolt on top of them adds +7% inf/s/W in `balance` and +2.5% in `eco` (both stopped
@@ -55,9 +54,7 @@ same power in the table, but the tuner's own comparison on one block prompt gave
 
 How it was measured: release 0.4.0, Linux, driver 580.178, mining on AriaPool; each value is the average of the miner's
 API over 3 minutes after the auto-undervolt had settled (one run per point, 31.10.2026). The prompt of the current block
-changes the speed by up to ±2–3%, so differences below that are noise. RTX 3070 `speed` with auto-UV: measured with the
-offsets the tuner found (+225 core, +500 memory) set as fixed offsets — the 14-minute test slot ended a second before the
-tuner's final confirmation. RTX 4070 Laptop: one run at stock clocks (no administrator rights on that machine, so the
+changes the speed by up to ±2–3%, so differences below that are noise. RTX 3070: re-measured on 01.11.2026 with the power limit raised to 200 W, so the limit no longer cuts the locked modes (we do not load a 3070 above ~200 W: the cooling may not keep up; the clock lock and the core offset set the power, the limit is only a safety cap); all six points on one card, the undervolt tuned from scratch, peak 76 °C. The undervolt headroom differs between cards of the same model: on another RTX 3070 the tuner found +210…+300 core instead of +165…+195. RTX 4070 Laptop: one run at stock clocks (no administrator rights on that machine, so the
 modes were not measured); the laptop sat at its 88 °C thermal limit, so its speed varied 28–31 inf/s. Your card,
 cooling and silicon will give somewhat different numbers.
 RTX 3080 Ti: Windows 10, driver 591.59, the Windows package started with `start.bat` as administrator, mining on suprnova
