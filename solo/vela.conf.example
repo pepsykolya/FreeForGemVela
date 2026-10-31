@@ -1,0 +1,12 @@
+# FreeForGemVela (ffgv) — solo mining on your own VELA node.
+# Put these lines into vela.conf (Linux: ~/.vela/vela.conf, Windows: %LOCALAPPDATA%\Vela\vela.conf), restart velad,
+# wait until the node is fully synced (vela-cli getblockchaininfo: "initialblockdownload": false), then run:
+#   ffgv --pool http://miner:CHANGE_ME_LONG_RANDOM@127.0.0.1:19732 --user vela1YOURADDRESS
+# The block reward goes to the --user address. Solo pays only when you find a block yourself.
+server=1
+rpcuser=miner
+rpcpassword=CHANGE_ME_LONG_RANDOM
+# RPC only from this computer. For a rig on another machine add its address, e.g. rpcallowip=192.168.1.0/24
+# and rpcbind=0.0.0.0 — and never open port 19732 to the internet.
+rpcbind=127.0.0.1
+rpcallowip=127.0.0.1
