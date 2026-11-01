@@ -7,7 +7,7 @@
 param(
     [string]$Wallet, [string]$Pool = 'stratum+tcp://vela.suprnova.cc:7601', [string]$Worker = $env:COMPUTERNAME,
     [string]$Devices = '', [string]$AutoUv = '', [string]$UvOffset = '', [string]$UvMax = '', [string]$UvMin = '',
-    [string]$LockCclock = '', [string]$LockMclock = '', [string]$Moffset = '', [string]$Pl = '', [string]$Mode = '', [string]$Extra = '', [string]$Password = ''
+    [string]$LockCclock = '', [string]$LockMclock = '', [string]$Moffset = '', [string]$Pl = '', [string]$Mode = '', [string]$AutoLock = '', [string]$TempLimit = '', [string]$Api = '', [string]$Extra = '', [string]$Password = ''
 )
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
@@ -124,6 +124,9 @@ if ($LockCclock) { $a += @('--lock-cclock', $LockCclock); $needAdmin = $true }
 if ($LockMclock) { $a += @('--lock-mclock', $LockMclock); $needAdmin = $true }
 if ($Moffset) { $a += @('--moffset', $Moffset); $needAdmin = $true }
 if ($Pl) { $a += @('--pl', $Pl); $needAdmin = $true }
+if ($AutoLock -eq '1') { $a += '--auto-lock'; $needAdmin = $true }
+if ($TempLimit) { $a += @('--temp-limit', $TempLimit) }
+if ($Api) { $a += @('--api', $Api) }
 if ($Extra) { $a += $Extra.Split(' ', [StringSplitOptions]::RemoveEmptyEntries) }
 if ($needAdmin) {
     $id = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
@@ -133,8 +136,8 @@ if ($needAdmin) {
 }
 $env:CUDA_DEVICE_ORDER = 'PCI_BUS_ID'
 $exe = Join-Path $root 'ffgv.exe'
-# one-shot flags (--uv-reset / --uv-reset-all) only for the first start of this window
-$oneShot = @('--uv-reset', '--uv-reset-all')
+# one-shot flags (--uv-reset / --uv-reset-all / --auto-lock-reset) only for the first start of this window
+$oneShot = @('--uv-reset', '--uv-reset-all', '--auto-lock-reset')
 while ($true) {
     Write-Host ('starting: ffgv.exe ' + (($a | ForEach-Object { if ($_ -match '\s') { "`"$_`"" } else { $_ } }) -join ' '))
     & $exe @a

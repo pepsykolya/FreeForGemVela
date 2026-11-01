@@ -51,7 +51,15 @@ rem Memory clock offset (MHz, needs NVIDIA driver 555+):
 set "MOFFSET="
 rem Power limit (W), e.g. 135:
 set "PL="
-rem Any other miner options, e.g. --uv-reset (forget the undervolt profile of the clocks now, once) or --api-port 4078
+rem Automatic core clock lock per GPU (Administrator): 1 = the miner tries several locks, each tuned and checked by
+rem consensus inferences, and keeps the most efficient one (first time ~1 h per GPU while mining; saved, later starts: at once)
+set "AUTO_LOCK="
+rem Temperature limit (laptops): keep the GPU at or below this many C by giving it less work (no Administrator needed), e.g. 80
+set "TEMP_LIMIT="
+rem Local read-only stats API port (http://127.0.0.1:PORT/summary, /gpus, /metrics), e.g. 4078; empty = off
+set "API="
+rem Any other miner options, e.g. --uv-reset (forget the undervolt profile of the clocks now, once), --no-update-check
+rem Start with Windows: double-click install-autostart.bat (remove-autostart.bat undoes it)
 set "EXTRA="
 rem Pool password (normally empty)
 set "PASSWORD="
@@ -59,7 +67,7 @@ rem ================================================================
 
 set "PS=powershell.exe"
 where pwsh.exe >nul 2>&1 && set "PS=pwsh.exe"
-"%PS%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0start.ps1" -Wallet "%WALLET%" -Pool "%POOL%" -Worker "%WORKER%" -Devices "%DEVICES%" -AutoUv "%AUTO_UV%" -UvOffset "%UV_OFFSET%" -UvMax "%UV_MAX%" -UvMin "%UV_MIN%" -LockCclock "%LOCK_CCLOCK%" -LockMclock "%LOCK_MCLOCK%" -Moffset "%MOFFSET%" -Pl "%PL%" -Mode "%MODE%" -Extra "%EXTRA%" -Password "%PASSWORD%"
+"%PS%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0start.ps1" -Wallet "%WALLET%" -Pool "%POOL%" -Worker "%WORKER%" -Devices "%DEVICES%" -AutoUv "%AUTO_UV%" -UvOffset "%UV_OFFSET%" -UvMax "%UV_MAX%" -UvMin "%UV_MIN%" -LockCclock "%LOCK_CCLOCK%" -LockMclock "%LOCK_MCLOCK%" -Moffset "%MOFFSET%" -Pl "%PL%" -Mode "%MODE%" -AutoLock "%AUTO_LOCK%" -TempLimit "%TEMP_LIMIT%" -Api "%API%" -Extra "%EXTRA%" -Password "%PASSWORD%"
 echo.
 echo FreeForGemVela stopped (exit code %ERRORLEVEL%).
 pause

@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.1 — user manual
+# FreeForGemVela (ffgv) 0.4.2 — user manual
 
 A step-by-step guide for people who have never mined VELA before. Русская версия — [MANUAL.ru.md](MANUAL.ru.md).
 
@@ -85,46 +85,43 @@ encrypted archive. Restore with `vela-cli restorewallet "main" /path/to/backup.d
 
 | GPU (power limit) | mode | auto-UV | clocks the miner set | inf/s | W | inf/s/W |
 |---|---|---|---|---|---|---|
-| RTX 3070 (200 W cap) | speed (= stock) | no | — (runs into the 200 W cap) | 39.34 | 199.4 | 0.197 |
-| RTX 3070 (200 W cap) | balance | no | lock 1500 | 35.29 | 147.2 | 0.240 |
-| RTX 3070 (200 W cap) | eco | no | lock 1400, mem 5001 | 31.88 | 123.6 | 0.258 |
-| RTX 3070 (200 W cap) | speed | yes | core +120 | 40.02 | 199.4 | 0.201 |
-| RTX 3070 (200 W cap) | balance | yes | lock 1500, core +165, mem +250 | 35.15 | 127.3 | 0.276 |
-| RTX 3070 (200 W cap) | eco | yes | lock 1400, mem 5001, core +195 | 31.52 | 105.2 | 0.300 |
-| RTX 4070 Ti (190 W) | speed (= stock) | no | — | 65.28 | 189.3 | 0.345 |
-| RTX 4070 Ti (190 W) | balance | no | lock 2250 | 64.14 | 179.2 | 0.358 |
-| RTX 4070 Ti (190 W) | eco | no | lock 2100, mem 5001 | 52.52 | 144.7 | 0.363 |
-| RTX 4070 Ti (190 W) | speed | yes | core +180 | 67.69 | 189.6 | 0.357 |
-| RTX 4070 Ti (190 W) | balance | yes | lock 2250, core +150 | 63.89 | 181.8 | 0.351 |
-| RTX 4070 Ti (190 W) | eco | yes | lock 2100, mem 5001, core +165 | 52.45 | 145.4 | 0.361 |
-| RTX 3080 Ti (350 W) | speed (= stock) | no | — | 61.45 | 334.6 | 0.184 |
-| RTX 3080 Ti (350 W) | balance | no | lock 1500 | 56.94 | 283.0 | 0.201 |
-| RTX 3080 Ti (350 W) | eco | no | lock 1400, mem 5001 | 49.43 | 215.2 | 0.230 |
-| RTX 3080 Ti (350 W) | speed | yes | core +165 | 64.16 | 333.0 | 0.193 |
-| RTX 3080 Ti (350 W) | balance | yes | lock 1500, core +120 | 56.85 | 263.7 | 0.216 |
-| RTX 3080 Ti (350 W) | eco | yes | lock 1400, mem 5001, core +225 | 49.35 | 209.6 | 0.235 |
-| RTX 4070 Laptop (laptop limit) | stock | no | — | 30.05 | 67.9 | 0.443 |
+| RTX 3070 (200 W ceiling) | balance | yes | lock 1500, core +240, mem +0 | 36.02 | 122.3 | 0.295 |
+| RTX 3070 (200 W ceiling) | eco | yes | lock 1400, mem 5001, core +270 | 32.71 | 100.0 | 0.327 |
+| RTX 4070 Ti (235 W) | speed (= stock) | no | — | 72.82 | 234.1 | 0.311 |
+| RTX 4070 Ti (235 W) | balance | no | lock 2250 | 66.17 | 178.5 | 0.371 |
+| RTX 4070 Ti (235 W) | eco | no | lock 2100, mem 5001 | 54.01 | 141.1 | 0.383 |
+| RTX 4070 Ti (235 W) | speed | yes | core +180 | 75.09 | 234.2 | 0.321 |
+| RTX 4070 Ti (235 W) | balance | yes | lock 2250, core +300 | 65.94 | 177.8 | 0.371 |
+| RTX 4070 Ti (235 W) | eco | yes | lock 2100, mem 5001, core +180 | 53.99 | 143.0 | 0.378 |
+| RTX 3080 Ti (350 W), 0.4.0 | speed (= stock) | no | — | 61.45 | 334.6 | 0.184 |
+| RTX 3080 Ti (350 W), 0.4.0 | balance | no | lock 1500 | 56.94 | 283.0 | 0.201 |
+| RTX 3080 Ti (350 W), 0.4.0 | eco | no | lock 1400, mem 5001 | 49.43 | 215.2 | 0.230 |
+| RTX 3080 Ti (350 W), 0.4.0 | speed | yes | core +165 | 64.16 | 333.0 | 0.193 |
+| RTX 3080 Ti (350 W), 0.4.0 | balance | yes | lock 1500, core +120 | 56.85 | 263.7 | 0.216 |
+| RTX 3080 Ti (350 W), 0.4.0 | eco | yes | lock 1400, mem 5001, core +225 | 49.35 | 209.6 | 0.235 |
+| RTX 4070 Laptop (laptop limit), 0.4.0 | stock | no | — | 30.05 | 67.9 | 0.443 |
 
-What the auto-undervolt adds: **RTX 3070** (power limit 200 W used only as a safety cap): `speed` has no clock lock and runs into the cap, the undervolt adds +1.7% inf/s at the same power; the clock locks of `balance` / `eco` cut the power by 26% / 38% for −10% / −19% inf/s, and the undervolt on top adds +15% / +16% inf/s/W, so against stock `balance` is +40% inf/s/W and `eco` **+52% inf/s/W**. **RTX 4070 Ti** runs at its power limit: the undervolt
-adds +3.7% in `speed`; in `balance` / `eco` the gain comes from the clock locks (up to +5% inf/s/W at −24% power), the
-undervolt on top changes little. **RTX 3080 Ti** (Windows): the clock locks give `balance` −7.5% inf/s at −21% power and
-`eco` −20% inf/s at −37% power; the undervolt on top of them adds +7% inf/s/W in `balance` and +2.5% in `eco` (both stopped
-at the voltage floor), so against stock `balance` is +17% inf/s/W and `eco` **+28% inf/s/W**. `speed`: +4.4% inf/s at the
-same power in the table, but the tuner's own comparison on one block prompt gave +0.6% — the rest is the prompt.
+The power limit is only a ceiling here (RTX 3070 200 W, RTX 4070 Ti 235 W): the mode sets the clocks, the undervolt the
+voltage. **RTX 3070:** `balance` with the undervolt mines at 122 W, `eco` at 100 W (+11% inf/s/W for −9% inf/s against
+`balance`); a HiveOS rig of four RTX 3070 in `balance` made 142.1 inf/s at 464 W. **RTX 4070 Ti** with the full 235 W:
+`speed` +3.1% inf/s from the undervolt at the same power; the clock locks of `balance` / `eco` cut the power by 24% / 40%
+for −9% / −26% inf/s (+19% / +23% inf/s/W), the undervolt on top of a lock changes little. **RTX 3080 Ti** (Windows, 0.4.0
+engine — 0.4.2 is ~3–4% faster at the same clocks): the clock locks give `balance` −7.5% inf/s at −21% power and `eco` −20%
+inf/s at −37% power; the undervolt on top adds +7% inf/s/W in `balance` and +2.5% in `eco`.
 
-How it was measured: release 0.4.0, Linux, driver 580.178, mining on AriaPool; each value is the average of the miner's
-API over 3 minutes after the auto-undervolt had settled (one run per point, 31.10.2026). The prompt of the current block
-changes the speed by up to ±2–3%, so differences below that are noise. RTX 3070: re-measured on 01.11.2026 with the power limit raised to 200 W, so the limit no longer cuts the locked modes (we do not load a 3070 above ~200 W: the cooling may not keep up; the clock lock and the core offset set the power, the limit is only a safety cap); all six points on one card, the undervolt tuned from scratch, peak 76 °C. The undervolt headroom differs between cards of the same model: on another RTX 3070 the tuner found +210…+300 core instead of +165…+195. RTX 4070 Laptop: one run at stock clocks (no administrator rights on that machine, so the
-modes were not measured); the laptop sat at its 88 °C thermal limit, so its speed varied 28–31 inf/s. Your card,
-cooling and silicon will give somewhat different numbers.
+How it was measured: release 0.4.2, Linux, driver 580.178, mining on AriaPool; each value is the average of the miner's
+API over 3 minutes after the auto-undervolt had settled (one run per point, 01.11.2026; the undervolt profiles tuned from
+scratch). The prompt of the current block changes the speed by up to ±2–3%, so differences below that are noise. The
+RTX 3070 rows without the undervolt and `speed` were not measured again for 0.4.2. RTX 4070 Laptop: one run of 0.4.0 at
+stock clocks at its 88 °C thermal limit (28–31 inf/s). Your card, cooling and silicon will give somewhat different numbers.
 RTX 3080 Ti: Windows 10, driver 591.59, the Windows package started with `start.bat` as administrator, mining on suprnova
 7601 / 7604 and AriaPool; the same 3-minute API average (4–5 minutes for the points without auto-UV, 31.10.2026). The
 memory search of `speed` / `balance` found no gain on its GDDR6X and kept +0.
 
 ## 5. Windows
 
-1. Download `ffgv-0.4.0-windows-x64.zip` and check its SHA256 against the release page
-   (PowerShell: `Get-FileHash .\ffgv-0.4.0-windows-x64.zip`).
+1. Download `ffgv-0.4.2-windows-x64.zip` and check its SHA256 against the release page
+   (PowerShell: `Get-FileHash .\ffgv-0.4.2-windows-x64.zip`).
 2. Unpack it to a folder **without spaces or non-English letters**, e.g. `C:\FreeForGemVela`.
 3. Right-click `start.bat` → **Edit** and set:
    - `WALLET` — **your** address. The example address in the file is the developer's; the script warns you if you keep it.
@@ -137,8 +134,17 @@ memory search of `speed` / `balance` found no gain on its GDDR6X and kept +0.
    `[ 120s] GPU0 34.40 inf/s 121W +180 m+0 | total 34.40 inf/s, 121 W, 0.2846 inf/s/W | A 36 R 0`
    (`+180` = core offset, `m+0` = memory offset, A / R = accepted / rejected shares).
 
-The window is the log. **Ctrl+C** stops the miner and puts your clocks back. If the miner exits (an error, a hang), the
-script restarts it after 15 s. All fields are explained in `README-WINDOWS.txt` and in `start.bat` itself.
+The window is the log. **Ctrl+C** (or closing the window) stops the miner and puts your clocks back. If the miner exits
+(an error, a hang), the script restarts it after 15 s. All fields are explained in `README-WINDOWS.txt` and in `start.bat`
+itself (`AUTO_LOCK=1`, `TEMP_LIMIT=80`, `API=4078` are there too).
+
+**Start with Windows:** double-click `install-autostart.bat` once (Windows asks for Administrator). It creates a Task
+Scheduler task that runs `start.bat` at your logon (30 s after it), in a visible window, with administrator rights (so
+`MODE` / `AUTO_UV` work without a prompt), also on battery, without the 72 h limit. `remove-autostart.bat` removes it.
+Do not also put `start.bat` into the Startup folder (two miners).
+
+**New version notice:** about a minute after the start and then every ~12 hours the miner asks GitHub for the latest
+release; if there is a newer one, the log says so (nothing is downloaded or installed). `--no-update-check` turns it off.
 
 ## 6. HiveOS
 
@@ -152,7 +158,7 @@ A ready flight sheet to paste with *Import from Clipboard* is in [HIVEOS.md](HIV
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically after the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | e.g. `stratum+ssl://vela.suprnova.cc:7604` — several separated by spaces = backups |
@@ -173,6 +179,12 @@ Notes:
 - `--mode speed` / `balance` lift a memory clock lock of the HiveOS OC profile while mining (SASEUL / Pearl profiles lock
   the memory to 810 MHz: an RTX 3070 then makes ~8 inf/s instead of ~35) and put it back on stop. `--lock-mclock MHz`
   sets your own lock instead; `--mode eco` locks the memory to 5001 MHz itself.
+- If HiveOS applies its OC again while the miner runs (you change the OC in the web UI), the miner sets its own locks, the
+  lifted memory lock and its power limit again within ~10 s. `miner stop` first lets the GPUs finish their batch, then puts
+  the OC profile's values back.
+- The dashboard's version column shows the rig's efficiency (`0.4.2 0.3012 inf/s/W`) and `new 0.4.3` when a newer
+  release is out (the miner checks GitHub every ~12 h; `--no-update-check` in Extra config turns it off).
+- Lists in Extra config (per GPU) are written without spaces: `--lock-cclock 1500,1400`.
 
 ## 7. Linux without HiveOS
 
@@ -265,13 +277,29 @@ opened to the rig's network).
 
 **Failover.** Give several pools: `--pool A --pool B` (or `--pool A,B`; in HiveOS separate them with spaces, in
 `start.bat` with commas). When a pool is unreachable or drops the connection, the miner moves to the next pool within
-about 15–20 s; after 10 minutes on a backup it tries the primary again. Pools of different kinds can be mixed.
+about 15–20 s. While it mines on a backup, the primary is checked every `--failback-minutes` (10) on a separate
+connection (nothing is submitted there); after 2 good checks 60 s apart the miner goes back to it. Pools of different kinds
+can be mixed.
+
+**No accepted shares.** Connected and mining, but the pool accepts nothing: no accepted share for max(`--noshare-minutes`
+(15), 10 × the expected share interval), only rejects for `--reject-minutes` (5), or no job for 5 minutes → the miner
+reconnects; if it happens again on the new connection, it moves to the next pool. Not in solo, not in the dev fee minute,
+and not when the GPUs found no share at all (that is a GPU problem: a warning only). `0` turns either check off.
 
 **`--suggest-diff D`** (stratum pools): asks the pool to start your share difficulty at `D` after login. Useful for a
 slow GPU (fewer, rarer shares otherwise) or a big rig. suprnova accepts it, but it sets only the start: the pool's vardiff
 adjusts it within a few minutes. For a really fixed difficulty use ports 7602 / 7603. AriaPool has its own vardiff.
 
-**API.** `--api-port 4078` serves JSON on `http://127.0.0.1:4078/` (`--api-bind 0.0.0.0` to open it to the network):
+**API.** `--api 4078` (the same as `--api-port 4078`) serves a read-only API on `http://127.0.0.1:4078`; `--api 0.0.0.0:4078`
+opens it to the network (then firewall it; host names other than IP addresses: `--api-hosts rig1`). No passwords are ever
+in it, only GET / HEAD, no CORS:
+
+- `/summary` — version, uptime, pool (url, index in the list, connected, height, share difficulty, failback state),
+  wallet / worker, inf/s, W, inf/s per W, shares, dev fee;
+- `/gpus` — per GPU: state (`mining`, `auto-uv`, `restarting`, `stopped`), inf/s, W, temperature, fan, clocks, offsets,
+  `auto_uv`, `auto_lock`, `temp_limit`, `watchdog`, `throttle`, errors, shares;
+- `/metrics` — Prometheus text (`ffgv_hashrate_infs`, `ffgv_gpu_hashrate_infs{gpu,bus,name}`, `ffgv_gpu_power_watts`, ...);
+- `/` — the JSON that HiveOS h-stats reads (unchanged since 0.3):
 
 ```
 {"version":"0.4.1","engine":"vg-...","uptime":1193,"mode":"balance","pool":"http://159.69.194.46:3349",
@@ -324,6 +352,66 @@ power limit you had before are always put back on exit.
 
 `--uv-reset` forgets the profile of the current clocks (once), `--uv-reset-all` forgets all profiles.
 
+### 10a. Automatic core clock lock `--auto-lock` (new in 0.4.2)
+
+ffgv picks the core clock lock of each GPU itself:
+
+    sudo ./ffgv --pool ... --user vela1ADDRESS.rig1 --auto-lock
+
+- It mines at several locks, highest first: by default 7 locks 100 MHz apart from 1800 MHz (RTX 30) or 2700 MHz
+  (RTX 40 / 50), nothing above the card's maximum; `--auto-lock-range 1300-1800:100` or `--auto-lock-range 1400,1500,1600`.
+- At each lock the auto-undervolt first tunes (or quick-checks) its own profile — a new lock starts 30 MHz below the
+  profile of the higher lock — then the GPU mines 45 s to settle and 120 s measured (inf/s from its own attempts, NVML watts,
+  median clock). **The point counts only after a canary round after the measurement passed and none failed during it**
+  (a failure there: the offset steps back as always and the lock is measured again, at most 3 times).
+- Choice: the best inf/s per W among the locks within `--auto-lock-max-loss` % (10) of the fastest one;
+  `--auto-lock-goal speed` = the fastest. Once a lock is below that cut, the lower ones are not measured.
+- Not valid: the clock did not hold the lock (power / thermal limit), no steady mining. FAILED: the driver refuses the lock,
+  no offset passes the canaries there. A lock during which the miner died (Xid, hang, power cut) is marked `crashed` and
+  never tried again.
+- The other GPUs mine all the time; all GPUs sweep in parallel; the status line shows `[auto-lock 1700, 2/5: measuring]`.
+  The first sweep costs about 10–15 minutes per lock; at the end the log shows a table and the chosen lock (`* chosen`).
+- Saved per GPU, driver and memory setting in `autolock.json` (HiveOS: `/hive-config/ffgv`): the next start applies it at
+  once. A changed goal / max loss is re-chosen from the saved points; `--auto-lock-reset` sweeps again (the undervolt
+  profiles stay). A GPU with its own `--lock-cclock` value is not swept; a `--mode` preset lock is replaced by the sweep.
+- Windows: `set AUTO_LOCK=1` in `start.bat` (run as administrator).
+
+### 10b. Watchdogs
+
+- **Hang:** no batch finished for `--watchdog-hang` seconds (40; 180 while a GPU opens): the miner remembers what to lower
+  (a tuning step = the edge; a profile 30 MHz lower), puts your settings back and exits with code 3.
+- **Slowdown:** a GPU below `--watchdog-drop` % (30) of its own speed (median of its last 10 minutes) for
+  `--watchdog-minutes` (3) gets a fresh worker; a tuned offset first goes 30 MHz down (re-checked by the canary). The third
+  slowdown within an hour is handled as a hang. Not judged while it tunes, without a job, while `--temp-limit` holds it or
+  `--auto-lock` sweeps it; under hardware throttling (thermal, power brake) or when most GPUs slow down at once (the rig)
+  it is only logged. `--no-watchdog` turns the slowdown check off. The status line shows `[wd 1s]` after an action.
+- **Xid / GPU fault:** the driver's Xid tells which GPU failed; its offset is lowered at the next start (the miner restarts
+  itself on Linux, `start.bat` restarts it on Windows). A crash within 30 s of HiveOS / another tool changing the clocks is
+  not counted against the undervolt.
+
+### 10c. Temperature limit `--temp-limit` (laptops)
+
+`--temp-limit 80` keeps the GPU at or below 80 °C by giving it less work (idle gaps after each batch; no administrator
+needed): a controller keeps it in 78–79 °C, starts at 30% and ramps up, full speed again when it is cool. `--temp-stop C2`
+(default min(C+10, 90)) stops the GPU until it cools to C−6. The status line shows `[temp-limit 72%]` / `[temp-stop 91 C]`.
+The clock lock of an undervolt profile is never lowered (the offset was checked at that lock). Windows: `TEMP_LIMIT=80`.
+
+### 10d. Per-GPU values, `--dry-run`
+
+`--lock-cclock`, `--lock-mclock`, `--moffset`, `--pl`, `--uv-offset`, `--uv-min`, `--uv-max`, `--uv-step`, `--mem-max`,
+`--temp-limit` take one value for all GPUs or a list in `--devices` order: `--lock-cclock 1500,1400,x`. `x`, `-` or empty =
+leave that GPU alone (clock locks and `--pl` also `0`); a shorter list repeats its last value (the HiveOS rule, logged);
+`x` in a `--uv-min` / `--uv-max` / `--uv-step` list = no auto-undervolt on that GPU. At the start one line per GPU says what
+the miner sets on it; `--dry-run` prints those lines and exits without changing anything. Lists have no spaces.
+
+### 10e. Stopping
+
+Ctrl+C, closing the window (Windows), SIGTERM, HiveOS `miner stop`, `--minutes M`, a hang or a GPU fault: the miner first
+lets every GPU finish its batch, then puts back the core and memory offsets, the clock locks (the HiveOS OC profile's, if
+there is one) and the power limit, in that order. If the process is killed hard or the power fails, the next start does it
+before anything else. While it runs, the miner's settings win: if HiveOS or another tool changes a lock, the lifted memory
+lock or the power limit, the miner sets its own again within ~10 s (at most 4 times an hour per GPU).
+
 ## 11. Dev fee
 
 1% of mining time: one 60 s slot every 100 minutes at a random moment, mined to
@@ -349,5 +437,8 @@ power limit you had before are always put back on exit.
 | laptop speed drops after a minute | Thermal or power limit of the laptop; `eco` mode helps keep it steady. |
 | folder path warning on Windows | Move the folder to e.g. `C:\FreeForGemVela`. |
 | want to start over | `--uv-reset-all` once; profiles: `uv.json` (Windows/Linux) or `/hive-config/ffgv` (HiveOS). |
+| `watchdog: GPUn SLOW` | The GPU ran far below its own speed; the miner restarted its worker. If it repeats: riser, power, cooling. |
+| `auto-lock ... FAILED` | That lock is not usable on this card (refused, or no offset passes); the sweep goes on with the next lock. |
+| what did the miner set on each GPU? | `--dry-run` with the same options prints one line per GPU and changes nothing. |
 
 Questions and reports: https://github.com/pepsykolya/FreeForGemVela/issues.

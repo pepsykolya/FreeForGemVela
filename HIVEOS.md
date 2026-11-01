@@ -21,7 +21,7 @@ Several URLs separated by spaces = failover (the first is the primary).
 2. **Flight Sheets** → **Import from Clipboard** and paste:
 
 ```json
-{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
+{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
 ```
 
 3. Pick your `VELA` wallet in the red-marked field (the import carries no wallet), **Create flight sheet**, apply it to the rig.
@@ -35,7 +35,7 @@ Coin `VELA`, Wallet: yours, Pool: *Configure in miner*, Miner: **Custom** → *S
 | Field | Value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (or another pool from the table) |
@@ -48,7 +48,14 @@ temperatures, fans, accepted / rejected shares. Undervolt profiles: `/hive-confi
 
 **OC profile:** with `--mode` the miner sets clocks and the undervolt itself and puts them back when it stops. Keep the
 HiveOS OC profile for fans / power limit only; do not set a core offset there at the same time. A memory clock lock of the
-profile (810 MHz in SASEUL / Pearl profiles) is lifted by `--mode speed` / `balance` while mining. Details: MANUAL §6, §10.
+profile (810 MHz in SASEUL / Pearl profiles) is lifted by `--mode speed` / `balance` while mining. If you change the OC
+in the web UI while the miner runs, the miner sets its own locks / power limit again within ~10 s; `miner stop` lets the
+GPUs finish their batch, then puts the profile's values back. Details: MANUAL §6, §10.
+
+**More in Extra config arguments (0.4.2):** `--auto-lock` (the miner picks the core lock per GPU, saved in
+`/hive-config/ffgv`), `--api 4078` with `/summary`, `/gpus`, `/metrics` (h-stats keeps working either way),
+`--no-update-check` (otherwise the version column shows `new X` when a newer release is out), per-GPU lists without spaces
+(`--lock-cclock 1500,1400`). **Updating:** HiveOS caches archives by file name — use the new Installation URL of each release.
 
 ## Русский
 
@@ -78,7 +85,7 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 | Поле | Значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится сам из URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (или другой пул из таблицы) |
@@ -91,4 +98,11 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 
 **OC-профиль:** с `--mode` майнер сам ставит частоты и андервольт и возвращает их при остановке (`speed` / `balance`
 снимают и лок памяти профиля, например 810 МГц от SASEUL / Pearl). OC-профиль HiveOS
-оставьте только для вентиляторов / лимита мощности; офсет ядра в нём одновременно не задавайте. Подробнее: MANUAL §6, §10.
+оставьте только для вентиляторов / лимита мощности; офсет ядра в нём одновременно не задавайте. Если сменить OC в
+веб-панели во время работы майнера, он за ~10 с вернёт свои локи / лимит мощности; `miner stop` даёт картам доделать
+батч, затем возвращает значения профиля. Подробнее: MANUAL §6, §10.
+
+**Ещё в Extra config arguments (0.4.2):** `--auto-lock` (майнер сам выбирает лок ядра по картам, сохраняется в
+`/hive-config/ffgv`), `--api 4078` с `/summary`, `/gpus`, `/metrics` (h-stats работает в любом случае), `--no-update-check`
+(иначе в колонке версии появится `new X`, когда выйдет новая версия), списки по картам без пробелов (`--lock-cclock 1500,1400`).
+**Обновление:** HiveOS кэширует архивы по имени файла — берите новый Installation URL каждого релиза.

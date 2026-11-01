@@ -6,6 +6,63 @@ byte for byte equal to the VELA node's own CPU code). Each engine round was meas
 before it on the same cards, so the steps below are exact; the series of different rounds used slightly different
 bench scripts (±1%).
 
+## 0.4.2 — 2026-11-01
+
+Engine: **+3.7% inf/s** on the RTX 3070 and the RTX 4070 Ti (bench 400 at a fixed clock, the same host, old / new / old /
+new: RTX 3070 at a 1500 MHz lock 35.26 → 36.57 inf/s, RTX 4070 Ti at 2250 MHz 64.08 → 66.42). Results are byte for byte
+the node's consensus (test vector, 40 consensus seeds, canary 56/56 on both cards, the same x0 as 0.4.1).
+
+| engine | what changed |
+|---|---|
+| altO | cross-attention: the last, partial key block (77 prompt tokens) also on the fast int32 path; the row bound without FP64; a 32-bit P·V epilogue; one load of the key tiles for both sweeps |
+| altP | GroupNorm chain: the statistics in one pass with 32-bit arithmetic; the per-pixel maxima before the slot convolutions from a certified float bracket with an exact fallback |
+
+Both rounds passed an independent audit (proofs re-derived; CPU and GPU stands at the boundary; a shadow run on real
+tensors with 0 differences) and ran in production before the release.
+
+Host — the feature set shared by our miners (FreeForGemSaseul 0.5.4, FreeForGem 1.7.5), adapted to VELA: the undervolt
+edge on VELA is quiet (a slightly wrong x0, not a crash), so every decision below that touches clocks is still taken by
+the consensus canaries byte for byte, and no safety margin is smaller than in 0.4.1.
+
+- **Settings go back after every kind of stop, GPU work first:** Ctrl+C, SIGTERM / SIGHUP (HiveOS `miner stop`), a second
+  Ctrl+C, the Windows console window closing (within the ~5 s Windows allows), the new `--minutes M`, the hang watchdog,
+  a GPU fault before the miner restarts itself, an error. The miner first lets every GPU finish its batch (a hung GPU does
+  not hold it up), then puts back the core and memory offsets, the clock locks (the HiveOS OC profile's, if any) and the
+  power limit. Crash markers are kept per process and per boot: a second ffgv on the same rig, or a marker from before a
+  reboot, is never "restored" over.
+- **The miner's flags win over the HiveOS OC profile while mining:** if HiveOS (an OC change in the web UI) or another tool
+  changes a lock, the memory lock that `--mode` lifted, or the power limit, the miner sets its own again (also without
+  auto-UV; at most 4 times an hour per GPU) and the canary re-checks the GPU. A GPU crash right after such an outside
+  change is not counted against its undervolt.
+- **`--auto-lock`:** the miner picks the core clock lock per GPU: it mines at several locks (each tuned by auto-UV and
+  checked by the canaries), measures inf/s and watts, and keeps the most efficient lock within `--auto-lock-max-loss` %
+  (10) of the top speed (`--auto-lock-goal speed`: the fastest). A point counts only after a canary round after its
+  measurement passed. Saved per GPU / driver / memory setting: the next start applies it at once. `--auto-lock-range`,
+  `--auto-lock-reset`. Windows: `AUTO_LOCK=1` in start.bat.
+- **Slowdown watchdog:** a GPU below 30% of its own speed for 3 minutes (no Xid, no error) gets a fresh worker; on a tuned
+  offset the offset first goes 30 MHz down. `--watchdog-drop`, `--watchdog-minutes`, `--watchdog-hang` (the hang limit,
+  40 s), `--no-watchdog`. A slowdown under hardware throttling, or of most GPUs at once (the rig), is only logged.
+- **Back to the primary pool:** while a backup pool is used, the primary is checked on a separate connection every
+  `--failback-minutes` (10); after 2 good checks the miner goes back (0.4.1 switched back blindly after 10 min). New
+  **no-accepted-shares watchdog**: no accepted share for max(15 min, 10 share intervals), only rejects for 5 min, or no
+  job for 5 min → reconnect, then the next pool (`--noshare-minutes`, `--reject-minutes`; never in solo or the fee minute).
+- **`--temp-limit C`** (laptops): keeps the GPU at or below C by idle gaps (`--temp-stop`); the lock of a canary-checked
+  offset is never lowered. Windows: `TEMP_LIMIT=80`.
+- **Per-GPU lists, one rule for all options:** `x` / `-` / empty = leave that GPU alone, a shorter list repeats its last
+  value (as HiveOS does), `--uv-step` per GPU, `x` in a `--uv-min` / `--uv-max` / `--uv-step` list = no auto-UV on that
+  GPU; one start-up line per GPU with what is set on it; `--dry-run` prints those lines and changes nothing.
+- **API:** `--api [HOST:]PORT` adds `/summary`, `/gpus` and `/metrics` (Prometheus) to the JSON at `/` that HiveOS reads
+  (unchanged). Read-only, never a password, Host-header check (`--api-hosts`), no CORS (the `/` JSON no longer sends
+  `Access-Control-Allow-Origin: *`). Windows: `API=4078`.
+- **New-version notice:** about every 12 h one request to the GitHub release page; a newer release is logged and shown
+  in HiveOS next to the version (`0.4.2 0.301 inf/s/W, new 0.4.3`). Nothing is downloaded or installed;
+  `--no-update-check`, `--check-update`.
+- **Windows autostart:** `install-autostart.bat` (asks for Administrator once) starts start.bat at your logon;
+  `remove-autostart.bat` undoes it.
+- uvfast completed: a profile that ended on the voltage floor is not used as the start of a lower lock.
+- The core-lock warning no longer speaks of "the single --lock-cclock" when the lock comes from `--mode`.
+- The start-up line of each GPU shows its memory clock and memory offset too.
+
 ## 0.4.1 — 2026-11-01 (Linux / HiveOS hotfix)
 
 - **HiveOS / older Linux:** the 0.4.0 Linux and HiveOS packages did not start on HiveOS ("cannot load the GPU engine

@@ -18,4 +18,8 @@ rejects the share. So the miner checks every setting with consensus test inferen
 keeps checking while mining, and steps the offset back 30 MHz when a check fails. Saved results (per GPU and per core
 clock lock) are in uv.json next to ffgv.exe; --uv-reset in EXTRA forgets the one of the current clocks.
 
-Stats as JSON: add --api-port 4078 to EXTRA and open http://127.0.0.1:4078/
+Stats: set API=4078 in start.bat and open http://127.0.0.1:4078/summary (also /gpus, /metrics for Prometheus).
+Start with Windows: double-click install-autostart.bat (asks for Administrator once; remove-autostart.bat undoes it).
+New version: the miner checks GitHub about every 12 h and says so in the log (nothing is installed; --no-update-check).
+AUTO_LOCK=1: the miner picks the core clock lock per GPU itself (each lock checked by consensus inferences).
+TEMP_LIMIT=80: laptops - keeps the GPU at or below 80 C by giving it less work.

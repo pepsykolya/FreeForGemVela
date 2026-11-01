@@ -18,7 +18,12 @@ else
   done < <(jq -r '.gpus[] | "\(.gpu) \(.inf_s) \((.temp_c // 0) | floor) \((.bus // "0:0") | split(":")[1])"' <<< "$_j")
   khs=$(jq -r '.total_inf_s / 1000' <<< "$_j")
   _w=$(jq -r '[.gpus[].power_w // 0] | add' <<< "$_j")
+  # HiveOS shows this next to the miner version: "0.4.2 0.3010 inf/s/W" (rig efficiency), ", new 0.4.3" when the miner found a newer
+  # release on GitHub (update.rs writes update-available next to ffgv; nothing is installed)
   _ver="$(jq -r .version <<< "$_j") $(awk -v t="$(jq -r .total_inf_s <<< "$_j")" -v w="$_w" 'BEGIN{ if (w>0) printf "%.4f inf/s/W", t/w }')"
+  _ver=${_ver% }
+  _new=; [[ -f $_ffgv_dir/update-available ]] && _new=$(tr -cd '0-9A-Za-z.' < "$_ffgv_dir/update-available" | head -c 20)
+  [[ -n $_new ]] && _ver="$_ver, new $_new"
   stats=$(jq -nc \
     --argjson hs "$(printf '%s\n' "${_hs[@]}" | jq -sc .)" \
     --argjson temp "$(printf '%s\n' "${_t[@]}" | jq -sc .)" \
