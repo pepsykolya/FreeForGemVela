@@ -6,6 +6,24 @@ byte for byte equal to the VELA node's own CPU code). Each engine round was meas
 before it on the same cards, so the steps below are exact; the series of different rounds used slightly different
 bench scripts (±1%).
 
+## 0.4.1 — 2026-11-01 (Linux / HiveOS hotfix)
+
+- **HiveOS / older Linux:** the 0.4.0 Linux and HiveOS packages did not start on HiveOS ("cannot load the GPU engine
+  (libvelagpu.so: cannot open shared object file)"): the engine library had been built on Ubuntu 24.04 and needed
+  glibc 2.38 / libstdc++ GLIBCXX_3.4.32. 0.4.1 builds the engine and the miner on Ubuntu 20.04: they need glibc 2.31 or
+  newer (HiveOS on Ubuntu 20.04 and 22.04, Ubuntu 20.04–24.04, Debian 11+), libstdc++ is linked into the engine.
+- **Clear engine load error:** if the engine cannot be loaded, the miner now shows the error of every place it tried,
+  the copy next to the binary first (e.g. "GLIBC_2.38 not found"), instead of only the last one.
+- **HiveOS memory lock:** `--mode speed` / `balance` lift a memory clock lock of the HiveOS OC profile while mining and
+  put it back on stop (a SASEUL / Pearl flight sheet before VELA leaves the memory locked to 810 MHz: RTX 3070 ~8 inf/s
+  instead of ~35, seen on a HiveOS rig while testing 0.4.1). `--lock-mclock` given by you still wins.
+- **Faster auto-undervolt** (from FreeForGemSaseul 0.5.4): 30 MHz steps, 15 MHz only inside the interval where a step
+  failed (the same 15 MHz result in about half the steps); the voltage-floor stop scales with the step; a new clock lock
+  starts 30 MHz below the profile of a higher lock. Every step is still decided by the consensus canaries, the margin and
+  the 150 s confirmation are unchanged. `--uv-coarse MHz` (default 2 x `--uv-step`; 15 = the old climb).
+- The engine is the same source as 0.4.0 (ac81eae), compiled with CUDA 12.8 instead of 12.9: results are byte for byte
+  the same (test vector, canaries, 40 consensus seeds) and the speed is the same. Windows package unchanged (0.4.0).
+
 ## 0.4.0 — 2026-10-31
 
 Engine (GPU library) — all rounds since the 0.3.0 host, one line per merged round:

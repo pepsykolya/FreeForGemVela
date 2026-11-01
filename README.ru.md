@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.0
+# FreeForGemVela (ffgv) 0.4.1
 
 Собственный GPU-майнер для **VELA** (Proof-of-Inference, целочисленный sd-turbo) на NVIDIA RTX 30 / 40 / 50.
 Пакеты для HiveOS и Windows. Комиссия разработчика **1%**. English — [README.md](README.md).
@@ -10,14 +10,14 @@
 
 ## Скачать
 
-Страница релиза: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.0
+Страница релиза: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.1
 
 | пакет | файл |
 |---|---|
-| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-hive-0.4.0.tar.gz |
-| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-0.4.0-linux-x86_64.tar.gz |
+| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz |
+| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-0.4.1-linux-x86_64.tar.gz |
 | Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-0.4.0-windows-x64.zip |
-| контрольные суммы | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/SHA256SUMS |
+| контрольные суммы | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/SHA256SUMS |
 
 Бинарник майнера — `ffgv` (`ffgv.exe` в Windows).
 
@@ -84,7 +84,7 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 | поле | значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится из URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-hive-0.4.0.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | см. примеры пулов ниже (несколько через пробел — резервные) |
@@ -94,6 +94,9 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 При первом запуске `h-run.sh` скачивает модель в `/hive/miners/custom/vela-model` (одна копия на риг) и сверяет sha256.
 Профили андервольта и записи о сбоях лежат в `/hive-config/ffgv` и переживают обновление майнера.
 Пока майнер работает, его настройки частот главнее OC-профиля HiveOS; при остановке исходные значения возвращаются.
+`--mode speed` / `balance` снимают и лок памяти из OC-профиля (профили SASEUL / Pearl держат память на 810 МГц, это
+~75% скорости VELA); `--lock-mclock` ставит ваш лок вместо этого. Первый запуск подбирает андервольт (шаги 30 МГц, у края
+15 МГц), около 5–10 минут, майнинг при этом идёт; следующие запуски только перепроверяют профиль.
 Панель HiveOS берёт скорость, температуры, вентиляторы и принятые/отклонённые шары из API майнера (`h-stats.sh`, порт 4078).
 
 ## Windows

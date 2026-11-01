@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.0 — руководство пользователя
+# FreeForGemVela (ffgv) 0.4.1 — руководство пользователя
 
 Пошаговое руководство для тех, кто ещё ни разу не майнил VELA. English — [MANUAL.md](MANUAL.md).
 
@@ -152,7 +152,7 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 | поле | значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится сам после URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-hive-0.4.0.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | например `stratum+ssl://vela.suprnova.cc:7604`; несколько через пробел — резервные |
@@ -170,12 +170,15 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 - С `--mode` или `--auto-uv` майнер сам ставит офсет ядра и возвращает его при остановке. OC-профиль HiveOS можно
   оставить для вентиляторов и лимита мощности, но **офсет ядра в нём одновременно не задавайте** (пока майнер работает,
   он его всё равно перебьёт).
+- `--mode speed` / `balance` на время майнинга снимают лок памяти из OC-профиля HiveOS (профили SASEUL / Pearl держат
+  память на 810 МГц: RTX 3070 тогда даёт ~8 inf/s вместо ~35) и возвращают его при остановке. `--lock-mclock МГц` ставит
+  ваш лок вместо этого; `--mode eco` сам фиксирует память на 5001 МГц.
 
 ## 7. Linux без HiveOS
 
 ```
-tar xzf ffgv-0.4.0-linux-x86_64.tar.gz
-cd ffgv-0.4.0
+tar xzf ffgv-0.4.1-linux-x86_64.tar.gz
+cd ffgv-0.4.1
 wget https://huggingface.co/valereseach/vela-sd-turbo-int-v2/resolve/main/sd-turbo-int.poisd
 sha256sum sd-turbo-int.poisd     # должно быть ba38ab96...1f36
 ./ffgv --selftest                # проверка движка: тест-вектор + 56 консенсус-канареек
@@ -195,9 +198,9 @@ Description=FreeForGemVela
 After=network-online.target
 
 [Service]
-WorkingDirectory=/opt/ffgv-0.4.0
+WorkingDirectory=/opt/ffgv-0.4.1
 Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
-ExecStart=/opt/ffgv-0.4.0/ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --pool http://159.69.194.46:3349 --user vela1ВАШАДРЕС.rig1 --model /opt/ffgv-0.4.0/sd-turbo-int.poisd --mode balance --api-port 4078 --no-color
+ExecStart=/opt/ffgv-0.4.1/ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --pool http://159.69.194.46:3349 --user vela1ВАШАДРЕС.rig1 --model /opt/ffgv-0.4.1/sd-turbo-int.poisd --mode balance --api-port 4078 --no-color
 Restart=always
 RestartSec=15
 
@@ -270,7 +273,7 @@ Pool URL для HiveOS: `http://159.69.194.46:3349`, `stratum+tcp://vela.suprnov
 **API.** `--api-port 4078` отдаёт JSON на `http://127.0.0.1:4078/` (`--api-bind 0.0.0.0` — открыть в сеть):
 
 ```
-{"version":"0.4.0","engine":"vg-...","uptime":1193,"mode":"balance","pool":"http://159.69.194.46:3349",
+{"version":"0.4.1","engine":"vg-...","uptime":1193,"mode":"balance","pool":"http://159.69.194.46:3349",
  "difficulty":4151.3,"total_inf_s":34.93,"accepted":2,"rejected":0,"stale":0,
  "gpus":[{"gpu":0,"bus":"0000:08:00.0","name":"NVIDIA GeForce RTX 3070","inf_s":34.93,"attempts":41208,"found":2,
           "accepted":2,"rejected":0,"integrity_errors":0,"canary_errors":0,"alive":true,"error":null,
@@ -304,7 +307,10 @@ Pool URL для HiveOS: `http://159.69.194.46:3349`, `stratum+tcp://vela.suprnov
 
 Как идёт подбор (первый запуск, около 7–10 минут; майнинг всё это время продолжается):
 1. 30 с прогрева, затем базовый офсет (RTX 30 +120, RTX 40 +150, RTX 50 +240 МГц).
-2. Шаги +15 МГц по 40 с, канарейки каждые 5 с — до первой проваленной канарейки или зависания.
+2. Шаги +30 МГц по 40 с, канарейки каждые 5 с — до первой проваленной канарейки или зависания; затем точка +15 МГц
+   внутри последнего интервала 30 МГц (та же точность 15 МГц, примерно вдвое меньше шагов; `--uv-coarse 15` — прежний
+   подъём по 15 МГц). Если мощность перестала падать (два шага подряд экономят < 0,5 Вт на 15 МГц), поиск останавливается.
+   Новая фиксация частоты стартует на 30 МГц ниже профиля более высокой фиксации той же карты (если он есть).
 3. Результат — последний годный шаг минус запас, подтверждение 150 с.
 4. В `speed` / `balance` на RTX 30 так же подбирается офсет памяти (шаги +250 МГц); он остаётся, только если даёт
    не меньше 1% скорости.

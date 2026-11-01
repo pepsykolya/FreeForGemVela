@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.0 — user manual
+# FreeForGemVela (ffgv) 0.4.1 — user manual
 
 A step-by-step guide for people who have never mined VELA before. Русская версия — [MANUAL.ru.md](MANUAL.ru.md).
 
@@ -152,7 +152,7 @@ A ready flight sheet to paste with *Import from Clipboard* is in [HIVEOS.md](HIV
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically after the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-hive-0.4.0.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | e.g. `stratum+ssl://vela.suprnova.cc:7604` — several separated by spaces = backups |
@@ -170,12 +170,15 @@ Notes:
 - With `--mode` or `--auto-uv` the miner sets the core offset itself and puts it back when it stops. You can keep a HiveOS
   OC profile for fans and power limit; **do not set a core clock offset there** at the same time (the miner would undo it
   while it runs anyway).
+- `--mode speed` / `balance` lift a memory clock lock of the HiveOS OC profile while mining (SASEUL / Pearl profiles lock
+  the memory to 810 MHz: an RTX 3070 then makes ~8 inf/s instead of ~35) and put it back on stop. `--lock-mclock MHz`
+  sets your own lock instead; `--mode eco` locks the memory to 5001 MHz itself.
 
 ## 7. Linux without HiveOS
 
 ```
-tar xzf ffgv-0.4.0-linux-x86_64.tar.gz
-cd ffgv-0.4.0
+tar xzf ffgv-0.4.1-linux-x86_64.tar.gz
+cd ffgv-0.4.1
 wget https://huggingface.co/valereseach/vela-sd-turbo-int-v2/resolve/main/sd-turbo-int.poisd
 sha256sum sd-turbo-int.poisd     # must be ba38ab96...1f36
 ./ffgv --selftest                # engine check: test vector + 56 consensus canaries
@@ -195,9 +198,9 @@ Description=FreeForGemVela
 After=network-online.target
 
 [Service]
-WorkingDirectory=/opt/ffgv-0.4.0
+WorkingDirectory=/opt/ffgv-0.4.1
 Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
-ExecStart=/opt/ffgv-0.4.0/ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --pool http://159.69.194.46:3349 --user vela1YOURADDRESS.rig1 --model /opt/ffgv-0.4.0/sd-turbo-int.poisd --mode balance --api-port 4078 --no-color
+ExecStart=/opt/ffgv-0.4.1/ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --pool http://159.69.194.46:3349 --user vela1YOURADDRESS.rig1 --model /opt/ffgv-0.4.1/sd-turbo-int.poisd --mode balance --api-port 4078 --no-color
 Restart=always
 RestartSec=15
 
@@ -271,7 +274,7 @@ adjusts it within a few minutes. For a really fixed difficulty use ports 7602 / 
 **API.** `--api-port 4078` serves JSON on `http://127.0.0.1:4078/` (`--api-bind 0.0.0.0` to open it to the network):
 
 ```
-{"version":"0.4.0","engine":"vg-...","uptime":1193,"mode":"balance","pool":"http://159.69.194.46:3349",
+{"version":"0.4.1","engine":"vg-...","uptime":1193,"mode":"balance","pool":"http://159.69.194.46:3349",
  "difficulty":4151.3,"total_inf_s":34.93,"accepted":2,"rejected":0,"stale":0,
  "gpus":[{"gpu":0,"bus":"0000:08:00.0","name":"NVIDIA GeForce RTX 3070","inf_s":34.93,"attempts":41208,"found":2,
           "accepted":2,"rejected":0,"integrity_errors":0,"canary_errors":0,"alive":true,"error":null,
@@ -305,7 +308,10 @@ sent; if a canary fails, the offset is lowered by 30 MHz and the profile is save
 
 How a tuning run goes (first start, about 7–10 minutes; mining continues the whole time):
 1. 30 s warm-up, then a baseline offset (RTX 30 +120, RTX 40 +150, RTX 50 +240 MHz).
-2. +15 MHz steps of 40 s each, canaries every 5 s, until the first failed canary or a hang.
+2. +30 MHz steps of 40 s each, canaries every 5 s, until the first failed canary or a hang; then the 15 MHz point inside
+   that last 30 MHz interval (same 15 MHz precision, about half the steps; `--uv-coarse 15` = the old 15 MHz climb). If
+   the power stops dropping (two steps in a row save < 0.5 W per 15 MHz), the search stops there. A new clock lock starts
+   30 MHz below the profile of a higher lock of the same GPU (when there is one) instead of the baseline offset.
 3. Result = the last good step minus a margin, confirmed for 150 s.
 4. In `speed` / `balance` on RTX 30: the memory offset is tuned the same way (+250 MHz steps); it is kept only if it adds
    at least 1% speed.

@@ -21,7 +21,7 @@ Several URLs separated by spaces = failover (the first is the primary).
 2. **Flight Sheets** → **Import from Clipboard** and paste:
 
 ```json
-{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-hive-0.4.0.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
+{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
 ```
 
 3. Pick your `VELA` wallet in the red-marked field (the import carries no wallet), **Create flight sheet**, apply it to the rig.
@@ -35,7 +35,7 @@ Coin `VELA`, Wallet: yours, Pool: *Configure in miner*, Miner: **Custom** → *S
 | Field | Value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-hive-0.4.0.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (or another pool from the table) |
@@ -47,7 +47,8 @@ Log: `miner log`, or `/var/log/miner/ffgv-hive/ffgv-hive.log`. The dashboard sho
 temperatures, fans, accepted / rejected shares. Undervolt profiles: `/hive-config/ffgv`.
 
 **OC profile:** with `--mode` the miner sets clocks and the undervolt itself and puts them back when it stops. Keep the
-HiveOS OC profile for fans / power limit only; do not set a core offset there at the same time. Details: MANUAL §6, §10.
+HiveOS OC profile for fans / power limit only; do not set a core offset there at the same time. A memory clock lock of the
+profile (810 MHz in SASEUL / Pearl profiles) is lifted by `--mode speed` / `balance` while mining. Details: MANUAL §6, §10.
 
 ## Русский
 
@@ -77,7 +78,7 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 | Поле | Значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится сам из URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-hive-0.4.0.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (или другой пул из таблицы) |
@@ -88,5 +89,6 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 Лог: `miner log` или `/var/log/miner/ffgv-hive/ffgv-hive.log`. Панель показывает inf/s по картам (1 «хеш» = 1 инференция),
 температуры, вентиляторы, принятые и отклонённые шары. Профили андервольта: `/hive-config/ffgv`.
 
-**OC-профиль:** с `--mode` майнер сам ставит частоты и андервольт и возвращает их при остановке. OC-профиль HiveOS
+**OC-профиль:** с `--mode` майнер сам ставит частоты и андервольт и возвращает их при остановке (`speed` / `balance`
+снимают и лок памяти профиля, например 810 МГц от SASEUL / Pearl). OC-профиль HiveOS
 оставьте только для вентиляторов / лимита мощности; офсет ядра в нём одновременно не задавайте. Подробнее: MANUAL §6, §10.

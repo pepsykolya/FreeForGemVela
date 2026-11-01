@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.0
+# FreeForGemVela (ffgv) 0.4.1
 
 Native GPU miner for **VELA** (Proof-of-Inference, integer sd-turbo) on NVIDIA RTX 30 / 40 / 50.
 HiveOS and Windows packages. Dev fee **1%**. Русская версия — [README.ru.md](README.ru.md).
@@ -10,14 +10,14 @@ HiveOS and Windows packages. Dev fee **1%**. Русская версия — [RE
 
 ## Download
 
-Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.0
+Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.1
 
 | package | file |
 |---|---|
-| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-hive-0.4.0.tar.gz |
-| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-0.4.0-linux-x86_64.tar.gz |
+| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz |
+| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-0.4.1-linux-x86_64.tar.gz |
 | Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-0.4.0-windows-x64.zip |
-| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/SHA256SUMS |
+| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/SHA256SUMS |
 
 The miner binary is `ffgv` (`ffgv.exe` on Windows).
 
@@ -84,7 +84,7 @@ Miner **Custom** → Setup Miner Config:
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.0/ffgv-hive-0.4.0.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.1/ffgv-hive-0.4.1.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | see the pool examples below (several, space separated = failover) |
@@ -94,6 +94,9 @@ Miner **Custom** → Setup Miner Config:
 On the first start `h-run.sh` downloads the model into `/hive/miners/custom/vela-model` (one copy per rig) and checks
 its sha256. Undervolt profiles and crash records are kept in `/hive-config/ffgv` (they survive miner updates).
 The miner's clock settings win over the HiveOS OC profile while it runs, and the original values are put back on stop.
+`--mode speed` / `balance` also lift a memory lock of the OC profile (SASEUL / Pearl profiles lock the memory to 810 MHz,
+which costs VELA ~75% of its speed); `--lock-mclock` sets your own lock instead. The first start tunes the undervolt
+(30 MHz steps, 15 MHz near the edge), about 5–10 minutes with mining going on; later starts only re-check the profile.
 The HiveOS dashboard reads speed, temperatures, fans, accepted/rejected shares from the miner's API (`h-stats.sh`, port 4078).
 
 ## Windows
