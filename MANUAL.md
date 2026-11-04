@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.2 — user manual
+# FreeForGemVela (ffgv) 0.4.3 — user manual
 
 A step-by-step guide for people who have never mined VELA before. Русская версия — [MANUAL.ru.md](MANUAL.ru.md).
 
@@ -72,7 +72,8 @@ encrypted archive. Restore with `vela-cli restorewallet "main" /path/to/backup.d
 
 ## 3. What you need
 
-- NVIDIA RTX 30 (sm_86), RTX 40 (sm_89) or RTX 50 (sm_120), 6 GB VRAM or more (8 GB recommended).
+- NVIDIA RTX 30 (sm_86), RTX 40 (sm_89) or RTX 50 (sm_120), 6 GB VRAM or more (8 GB recommended). **New in 0.4.3:** Turing
+  (sm_75) — the mining card **CMP 50HX** (tested, with its own presets); RTX 20 cards load the same code but have no presets.
 - NVIDIA driver R525 or newer (RTX 50: R570 or newer). The memory offset needs R555 or newer.
   Tested on 580.178 (Linux) and 576.57 (Windows).
 - Windows 10/11 x64, HiveOS, or a 64-bit Linux with glibc.
@@ -100,6 +101,10 @@ encrypted archive. Restore with `vela-cli restorewallet "main" /path/to/backup.d
 | RTX 3080 Ti (350 W), 0.4.0 | balance | yes | lock 1500, core +120 | 56.85 | 263.7 | 0.216 |
 | RTX 3080 Ti (350 W), 0.4.0 | eco | yes | lock 1400, mem 5001, core +225 | 49.35 | 209.6 | 0.235 |
 | RTX 4070 Laptop (laptop limit), 0.4.0 | stock | no | — | 30.05 | 67.9 | 0.443 |
+| CMP 50HX (225 W), 0.4.3 engine, bench | speed (= stock) | no | — | 34.5 | 219 | 0.157 |
+| CMP 50HX (225 W), 0.4.3 engine, bench | 1650 MHz | yes | lock 1650, core +240 | 35.1 | 183 | 0.192 |
+| CMP 50HX (225 W), 0.4.3 engine, bench | balance | yes | lock 1500, core +300 | 32.6 | 151 | 0.216 |
+| CMP 50HX (225 W), 0.4.3 engine, bench | eco | yes | lock 1350, core +300 | 29.6 | 134 | 0.220 |
 
 The power limit is only a ceiling here (RTX 3070 200 W, RTX 4070 Ti 235 W): the mode sets the clocks, the undervolt the
 voltage. **RTX 3070:** `balance` with the undervolt mines at 122 W, `eco` at 100 W (+11% inf/s/W for −9% inf/s against
@@ -108,6 +113,12 @@ voltage. **RTX 3070:** `balance` with the undervolt mines at 122 W, `eco` at 100
 for −9% / −26% inf/s (+19% / +23% inf/s/W), the undervolt on top of a lock changes little. **RTX 3080 Ti** (Windows, 0.4.0
 engine — 0.4.2 is ~3–4% faster at the same clocks): the clock locks give `balance` −7.5% inf/s at −21% power and `eco` −20%
 inf/s at −37% power; the undervolt on top adds +7% inf/s/W in `balance` and +2.5% in `eco`.
+
+**CMP 50HX** (Turing, the offset works through NVML, no edge found up to +420): unlocked it runs into its 225 W limit at 34.5 inf/s
+(the clock settles near 1635 MHz); `balance` (lock 1500, +300) is −5% inf/s for −31% power, +37% inf/s per W; `eco` (lock 1350,
++300) +40% inf/s per W. The CMP rows are offline engine benchmark runs (batch 16, 04.11.2026) with a lock/offset controller on a
+rig with the CMP unlock driver, not mining runs; the offsets are the points where the canaries pass (test vector byte for byte).
+Without the unlock driver the same card makes about 11 times less (§6, CMP cards).
 
 How it was measured: release 0.4.2, Linux, driver 580.178, mining on AriaPool; each value is the average of the miner's
 API over 3 minutes after the auto-undervolt had settled (one run per point, 01.11.2026; the undervolt profiles tuned from
@@ -120,8 +131,8 @@ memory search of `speed` / `balance` found no gain on its GDDR6X and kept +0.
 
 ## 5. Windows
 
-1. Download `ffgv-0.4.2-windows-x64.zip` and check its SHA256 against the release page
-   (PowerShell: `Get-FileHash .\ffgv-0.4.2-windows-x64.zip`).
+1. Download `ffgv-0.4.3-windows-x64.zip` and check its SHA256 against the release page
+   (PowerShell: `Get-FileHash .\ffgv-0.4.3-windows-x64.zip`).
 2. Unpack it to a folder **without spaces or non-English letters**, e.g. `C:\FreeForGemVela`.
 3. Right-click `start.bat` → **Edit** and set:
    - `WALLET` — **your** address. The example address in the file is the developer's; the script warns you if you keep it.
@@ -158,7 +169,7 @@ A ready flight sheet to paste with *Import from Clipboard* is in [HIVEOS.md](HIV
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically after the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | e.g. `stratum+ssl://vela.suprnova.cc:7604` — several separated by spaces = backups |
@@ -182,9 +193,32 @@ Notes:
 - If HiveOS applies its OC again while the miner runs (you change the OC in the web UI), the miner sets its own locks, the
   lifted memory lock and its power limit again within ~10 s. `miner stop` first lets the GPUs finish their batch, then puts
   the OC profile's values back.
-- The dashboard's version column shows the rig's efficiency (`0.4.2 0.3012 inf/s/W`) and `new 0.4.3` when a newer
+- The dashboard's version column shows the rig's efficiency (`0.4.3 0.3012 inf/s/W`) and `new 0.4.4` when a newer
   release is out (the miner checks GitHub every ~12 h; `--no-update-check` in Extra config turns it off).
 - Lists in Extra config (per GPU) are written without spaces: `--lock-cclock 1500,1400`.
+
+### CMP cards: the unlock driver (0.4.3)
+
+NVIDIA CMP mining cards (CMP 50HX and the family) work at a small part of their speed under the stock NVIDIA driver: the same
+engine, the same card, 1500 MHz, batch 16 made 2.4 inf/s with a stock driver and 27.4 inf/s with a driver that unlocks the card's
+compute (the stock driver limits the arithmetic of the CMP chip; the engine does not change). The miner can install such a driver
+on HiveOS, **only when you ask for it**:
+
+- once, by hand: `sudo ./ffgv --cmp-driver` in the miner folder (`/hive/miners/custom/ffgv-hive`); or
+- on every start, from the flight sheet: add `--cmp-unlock-driver` to Extra config arguments (the miner does not get it).
+  A rig that already has the driver is left alone; a rig without a CMP card is left alone.
+
+What it does: checks that this is HiveOS (`nvidia-driver-update`), that it runs as root and that a CMP card is on the PCI bus;
+if the unlock driver (NVIDIA Open Kernel Module 610.43.03 with the CMP unlock) is not installed yet, it downloads that driver to
+disk, checks its SHA-256 against the value fixed in the miner (another file is deleted, nothing is installed), installs it with
+HiveOS's own `nvidia-driver-update --force` and **reboots the rig**; HiveOS starts the miner again after the boot. The log lines
+begin with `--cmp-driver:`. `FFGV_CMP_DRIVER_NO_REBOOT=1` installs without the reboot, `FFGV_CMP_DRIVER_FORCE=1` installs again
+even when the driver is in place.
+
+Before you use it: it replaces the NVIDIA kernel driver of the whole rig (every GPU program uses it afterwards); Secure Boot
+must be off; this is a third-party build of the driver, not NVIDIA's, you use it at your own risk; if the power fails during the
+installation the rig can start without a working driver, so do it when you can reach the rig. To go back, install another
+driver version with `nvidia-driver-update` and reboot. The speed table and the CMP presets of §4 / §10 are for the rig with this driver.
 
 ## 7. Linux without HiveOS
 
@@ -321,7 +355,10 @@ in it, only GET / HEAD, no CORS:
 | `balance` | core lock 1500 MHz, memory up to +1000 | core lock 2250 MHz | nearly the speed for less power |
 | `eco` | core lock 1400 MHz, memory locked at 5001 MHz | core lock 2100 MHz, memory locked at 5001 MHz | the least power |
 
-Every mode turns the auto-undervolt on. RTX 50 and other cards have no preset yet: their clocks stay as they are and only
+**CMP 50HX (0.4.3):** `speed` no lock; `balance` lock 1500 MHz; `eco` lock 1350 MHz (memory as it is); the auto-undervolt starts
+at +210 and searches up to +450. RTX 20 and other Turing cards have no preset.
+
+Every mode turns the auto-undervolt on. RTX 50 and other cards (RTX 20) have no preset yet: their clocks stay as they are and only
 the undervolt is tuned. Your own `--lock-cclock`, `--lock-mclock`, `--moffset`, `--pl` or `--uv-offset` win over the preset.
 Without a mode, `--auto-uv` tunes the core offset at whatever clocks you set; `--uv-offset 150` sets a fixed offset (still
 checked the same way).
@@ -335,19 +372,25 @@ confirms the result for 150 s. While mining, a canary runs every 120 s, and ever
 sent; if a canary fails, the offset is lowered by 30 MHz and the profile is saved. A wrong result never reaches the pool.
 
 How a tuning run goes (first start, about 7–10 minutes; mining continues the whole time):
-1. 30 s warm-up, then a baseline offset (RTX 30 +120, RTX 40 +150, RTX 50 +240 MHz).
+1. 30 s warm-up, then a baseline offset (RTX 30 +120, RTX 40 +150, RTX 50 +240, CMP 50HX +210 MHz). If the start fails the
+   canary it is checked once more before the miner goes down 30 MHz (0.4.3: a cold card or a one-off error is no edge).
 2. +30 MHz steps of 40 s each, canaries every 5 s, until the first failed canary or a hang; then the 15 MHz point inside
    that last 30 MHz interval (same 15 MHz precision, about half the steps; `--uv-coarse 15` = the old 15 MHz climb). If
    the power stops dropping (two steps in a row save < 0.5 W per 15 MHz), the search stops there. A new clock lock starts
-   30 MHz below the profile of a higher lock of the same GPU (when there is one) instead of the baseline offset.
+   30 MHz below the profile of the nearest higher lock of the same GPU (when there is one, and it did not end on the voltage
+   floor) instead of the baseline offset; this holds for `--auto-lock` sweeps too (the log says which profile it came from).
 3. Result = the last good step minus a margin, confirmed for 150 s.
 4. In `speed` / `balance` on RTX 30: the memory offset is tuned the same way (+250 MHz steps); it is kept only if it adds
    at least 1% speed.
 5. The profile is saved per GPU and per clock setting (`uv.json`). Later starts only re-check it (about 30 s).
+6. **The steps that passed are kept (0.4.3).** If the tuning is cut short — a stop (Ctrl+C, `miner stop`, a config change), or a
+   fault of *another* GPU that ends the process — the next start goes on from the last good step (two steps below it) with the
+   edge it had already found, instead of starting over from the baseline. The step that was in progress is **not** counted as
+   that GPU's edge: only the GPU with the Xid / hang gets its step written as failed.
 
 Safety nets: a GPU that stops answering for 40 s (a hang, typically memory pushed too far) is reported as `HUNG`; the
 miner lowers what it was trying, puts your clocks back and exits with code 3 so that HiveOS / systemd / `start.bat` start
-it again. After a driver error (Xid) the miner restarts itself and lowers the offset (by 30 MHz, or below the step it was trying). Clocks, offsets and the
+it again. After a driver error (Xid) the miner restarts itself and lowers the offset of the GPU that reported it (by 30 MHz, or below the step it was trying); the other GPUs of the process keep their tuning. Clocks, offsets and the
 power limit you had before are always put back on exit.
 
 `--uv-reset` forgets the profile of the current clocks (once), `--uv-reset-all` forgets all profiles.
@@ -359,7 +402,7 @@ ffgv picks the core clock lock of each GPU itself:
     sudo ./ffgv --pool ... --user vela1ADDRESS.rig1 --auto-lock
 
 - It mines at several locks, highest first: by default 7 locks 100 MHz apart from 1800 MHz (RTX 30) or 2700 MHz
-  (RTX 40 / 50), nothing above the card's maximum; `--auto-lock-range 1300-1800:100` or `--auto-lock-range 1400,1500,1600`.
+  (RTX 40 / 50), nothing above the card's maximum (CMP 50HX, 0.4.3: 1650, 1500, 1350 — the measured points); `--auto-lock-range 1300-1800:100` or `--auto-lock-range 1400,1500,1600`.
 - At each lock the auto-undervolt first tunes (or quick-checks) its own profile — a new lock starts 30 MHz below the
   profile of the higher lock — then the GPU mines 45 s to settle and 120 s measured (inf/s from its own attempts, NVML watts,
   median clock). **The point counts only after a canary round after the measurement passed and none failed during it**
@@ -367,8 +410,11 @@ ffgv picks the core clock lock of each GPU itself:
 - Choice: the best inf/s per W among the locks within `--auto-lock-max-loss` % (10) of the fastest one;
   `--auto-lock-goal speed` = the fastest. Once a lock is below that cut, the lower ones are not measured.
 - Not valid: the clock did not hold the lock (power / thermal limit), no steady mining. FAILED: the driver refuses the lock,
-  no offset passes the canaries there. A lock during which the miner died (Xid, hang, power cut) is marked `crashed` and
-  never tried again.
+  no offset passes the canaries there. A lock is marked `crashed` (and never tried again) only when
+  THIS GPU failed on it (its own Xid / hang) while mining with an already checked offset (settling, measuring, canary), or
+  failed 3 times in a row while auto-uv tuned it, or the miner died 2 starts in a row at it for no known reason. The Xid of
+  another GPU, a stop (SIGTERM, a new flight sheet) and an offset step above the edge during auto-uv's tuning (auto-uv records
+  that edge and runs lower) do not mark it: the sweep goes on with the same lock.
 - The other GPUs mine all the time; all GPUs sweep in parallel; the status line shows `[auto-lock 1700, 2/5: measuring]`.
   The first sweep costs about 10–15 minutes per lock; at the end the log shows a table and the chosen lock (`* chosen`).
 - Saved per GPU, driver and memory setting in `autolock.json` (HiveOS: `/hive-config/ffgv`): the next start applies it at
@@ -385,8 +431,12 @@ ffgv picks the core clock lock of each GPU itself:
   slowdown within an hour is handled as a hang. Not judged while it tunes, without a job, while `--temp-limit` holds it or
   `--auto-lock` sweeps it; under hardware throttling (thermal, power brake) or when most GPUs slow down at once (the rig)
   it is only logged. `--no-watchdog` turns the slowdown check off. The status line shows `[wd 1s]` after an action.
-- **Xid / GPU fault:** the driver's Xid tells which GPU failed; its offset is lowered at the next start (the miner restarts
-  itself on Linux, `start.bat` restarts it on Windows). A crash within 30 s of HiveOS / another tool changing the clocks is
+- **Xid / GPU fault:** the driver's Xid tells which GPU failed; only its offset is lowered at the next start (the miner restarts
+  itself on Linux, `start.bat` restarts it on Windows). A CUDA fault stops every GPU of the process, but the others are not at
+  fault: their tuning steps are saved as interrupted (0.4.3), not as failed.
+- **GPU cannot be opened** ("busy or unavailable", "GPU is lost" at the start, e.g. after the previous miner's fault): not an
+  undervolt failure, nothing is lowered. The miner waits 1, then 5, then 15 minutes (every 15 min after) before it exits for
+  HiveOS / `start.bat` to start it again, instead of hundreds of restarts a minute. Such a card usually needs a reset or a reboot. A crash within 30 s of HiveOS / another tool changing the clocks is
   not counted against the undervolt.
 
 ### 10c. Temperature limit `--temp-limit` (laptops)
@@ -406,7 +456,7 @@ the miner sets on it; `--dry-run` prints those lines and exits without changing 
 
 ### 10e. Stopping
 
-Ctrl+C, closing the window (Windows), SIGTERM, HiveOS `miner stop`, `--minutes M`, a hang or a GPU fault: the miner first
+Ctrl+C, closing the window (Windows), SIGTERM, HiveOS `miner stop`, `--minutes M`, a hang or a GPU fault (a tuning in progress is saved, see 10): the miner first
 lets every GPU finish its batch, then puts back the core and memory offsets, the clock locks (the HiveOS OC profile's, if
 there is one) and the power limit, in that order. If the process is killed hard or the power fails, the next start does it
 before anything else. While it runs, the miner's settings win: if HiveOS or another tool changes a lock, the lifted memory

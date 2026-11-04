@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.2
+# FreeForGemVela (ffgv) 0.4.3
 
 Собственный GPU-майнер для **VELA** (Proof-of-Inference, целочисленный sd-turbo) на NVIDIA RTX 30 / 40 / 50.
 Пакеты для HiveOS и Windows. Комиссия разработчика **1%**. English — [README.md](README.md).
@@ -12,14 +12,14 @@
 
 ## Скачать
 
-Страница релиза: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.2
+Страница релиза: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.3
 
 | пакет | файл |
 |---|---|
-| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz |
-| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-0.4.2-linux-x86_64.tar.gz |
-| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-0.4.2-windows-x64.zip |
-| контрольные суммы | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/SHA256SUMS |
+| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz |
+| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-0.4.3-linux-x86_64.tar.gz |
+| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-0.4.3-windows-x64.zip |
+| контрольные суммы | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/SHA256SUMS |
 
 Бинарник майнера — `ffgv` (`ffgv.exe` в Windows).
 
@@ -42,6 +42,10 @@
 | RTX 3080 Ti (350 Вт), 0.4.0 | balance | да | лок 1500, ядро +120 | 56.85 | 263.7 | 0.216 |
 | RTX 3080 Ti (350 Вт), 0.4.0 | eco | да | лок 1400, память 5001, ядро +225 | 49.35 | 209.6 | 0.235 |
 | RTX 4070 Laptop (лимит ноутбука), 0.4.0 | сток | нет | — | 30.05 | 67.9 | 0.443 |
+| CMP 50HX (225 Вт), движок 0.4.3, стенд | speed (= сток) | нет | — | 34.5 | 219 | 0.157 |
+| CMP 50HX (225 Вт), движок 0.4.3, стенд | 1650 МГц | да | лок 1650, ядро +240 | 35.1 | 183 | 0.192 |
+| CMP 50HX (225 Вт), движок 0.4.3, стенд | balance | да | лок 1500, ядро +300 | 32.6 | 151 | 0.216 |
+| CMP 50HX (225 Вт), движок 0.4.3, стенд | eco | да | лок 1350, ядро +300 | 29.6 | 134 | 0.220 |
 
 Лимит мощности здесь — только потолок (RTX 3070 200 Вт, RTX 4070 Ti 235 Вт): частоты задаёт режим, напряжение —
 андервольт. **RTX 3070:** `balance` с андервольтом майнит при 122 Вт, `eco` — при 100 Вт (+11% inf/s/Вт при −9% inf/s к
@@ -50,6 +54,11 @@
 (+19% / +23% inf/s/Вт), андервольт поверх лока почти ничего не меняет. **RTX 3080 Ti** (Windows, движок 0.4.0 — 0.4.2 на тех же
 частотах быстрее на ~3–4%): локи дают в `balance` −7.5% inf/s при −21% мощности, в `eco` −20% inf/s при −37% мощности;
 андервольт поверх них добавляет +7% inf/s/Вт в `balance` и +2.5% в `eco`.
+
+**CMP 50HX** (Turing; офсет работает через NVML, край до +420 не найден): без лока упирается в 225 Вт на 34,5 inf/s
+(частота садится около 1635 МГц); `balance` (лок 1500, +300) — −5% inf/s при −31% мощности (+37% inf/s на Вт), `eco` (лок 1350,
++300) — +40% inf/s на Вт. Строки CMP — прогоны стенда движка (батч 16, 04.11.2026) на риге с драйвером-разблокировкой CMP, не
+майнинг; без этого драйвера такие карты работают примерно в 11 раз медленнее (MANUAL §6, `--cmp-driver`).
 
 Как мерили: релиз 0.4.2, Linux, драйвер 580.178, майнинг на AriaPool; каждое значение — среднее по API майнера за 3 минуты
 после окончания подбора (по одному прогону на точку, 01.11.2026; профили андервольта подобраны с нуля). Промпт текущего блока
@@ -65,7 +74,8 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 
 ## Требования
 
-- NVIDIA RTX 30 (sm_86), RTX 40 (sm_89) или RTX 50 (sm_120); видеопамять от 6 ГБ (лучше 8 ГБ).
+- NVIDIA RTX 30 (sm_86), RTX 40 (sm_89) или RTX 50 (sm_120); видеопамять от 6 ГБ (лучше 8 ГБ). Новое в 0.4.3: Turing
+  (sm_75), майнинговая карта CMP 50HX (проверена, свои пресеты); RTX 20 грузит тот же код, без пресетов.
 - Драйвер NVIDIA с поддержкой CUDA 12 (R525 и новее; для RTX 50 — R570 и новее). Проверено на 580.178 (Linux) и 576.57 (Windows).
   Офсет памяти (`--moffset`, андервольт памяти) — драйвер R555 и новее.
 - Linux x86_64 (HiveOS или любой дистрибутив на glibc) или Windows 10/11 x64.
@@ -83,7 +93,7 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 | поле | значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится из URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | см. примеры пулов ниже (несколько через пробел — резервные) |
@@ -103,7 +113,7 @@ OC-профиля. Панель HiveOS берёт скорость, темпер
 
 ## Windows
 
-1. Распакуйте `ffgv-0.4.2-windows-x64.zip` в папку без пробелов, например `C:\FreeForGemVela`.
+1. Распакуйте `ffgv-0.4.3-windows-x64.zip` в папку без пробелов, например `C:\FreeForGemVela`.
 2. Правой кнопкой по `start.bat` → «Изменить»: впишите в `WALLET` **свой** адрес (в примере стоит адрес разработчика),
    `POOL`, `WORKER`, при желании `MODE=balance`.
 3. Запустите `start.bat` (от администратора, если используете `MODE`, `AUTO_UV` или частоты). При первом запуске скачается
@@ -149,6 +159,11 @@ Pool URL для HiveOS: `http://159.69.194.46:3349`, `stratum+tcp://vela.suprnov
 запуск перепроверяет его примерно за 30 с. В майнинге канарейка идёт раз в 120 с; провал снижает офсет на 30 МГц.
 Карта, зависшая на 40 с, ловится: майнер снижает то, что пробовал, возвращает ваши настройки и выходит с кодом 3, чтобы
 HiveOS / `start.bat` его перезапустили. `--uv-reset` забывает профиль текущих частот, `--uv-reset-all` — все.
+
+**Новое в 0.4.3:** шаги прерванного автоандервольта сохраняются (остановка или сбой другой карты процесса больше не откатывают подбор
+к началу, а как неудачный шаг записывается только у карты с Xid); стартовый офсет, не прошедший проверку, проверяется ещё раз,
+прежде чем идти вниз; карту, которую не открыть, майнер ждёт (1, 5, 15 мин) и только потом выходит; пресеты CMP 50HX (`--mode`,
+старт `--auto-uv` +210, `--auto-lock` 1650/1500/1350); `--cmp-driver` (HiveOS, по запросу: ставит драйвер-разблокировку CMP).
 
 `--auto-lock` (новое в 0.4.2) сам выбирает лок ядра для каждой карты: майнит на нескольких локах (по умолчанию 7 локов
 через 100 МГц — от 1800 у RTX 30 и от 2700 у RTX 40 / 50, не выше максимума карты), каждый со своим профилем

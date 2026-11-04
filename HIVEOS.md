@@ -21,7 +21,7 @@ Several URLs separated by spaces = failover (the first is the primary).
 2. **Flight Sheets** → **Import from Clipboard** and paste:
 
 ```json
-{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
+{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
 ```
 
 3. Pick your `VELA` wallet in the red-marked field (the import carries no wallet), **Create flight sheet**, apply it to the rig.
@@ -35,7 +35,7 @@ Coin `VELA`, Wallet: yours, Pool: *Configure in miner*, Miner: **Custom** → *S
 | Field | Value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (or another pool from the table) |
@@ -56,6 +56,11 @@ GPUs finish their batch, then puts the profile's values back. Details: MANUAL §
 `/hive-config/ffgv`), `--api 4078` with `/summary`, `/gpus`, `/metrics` (h-stats keeps working either way),
 `--no-update-check` (otherwise the version column shows `new X` when a newer release is out), per-GPU lists without spaces
 (`--lock-cclock 1500,1400`). **Updating:** HiveOS caches archives by file name — use the new Installation URL of each release.
+
+**CMP cards (0.4.3):** under the stock NVIDIA driver a CMP card (CMP 50HX and the family) makes about a tenth of its speed.
+To let the miner install the CMP unlock driver, add `--cmp-unlock-driver` to Extra config arguments (the miner does not
+get it). It checks, installs only if the driver is not in place yet, and **reboots the rig**; a rig that already has it is left
+alone. It replaces the NVIDIA driver of the whole rig: read MANUAL §6 (CMP cards) first. By hand: `sudo ./ffgv --cmp-driver`.
 
 ## Русский
 
@@ -85,7 +90,7 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 | Поле | Значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится сам из URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (или другой пул из таблицы) |
@@ -106,3 +111,8 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 `/hive-config/ffgv`), `--api 4078` с `/summary`, `/gpus`, `/metrics` (h-stats работает в любом случае), `--no-update-check`
 (иначе в колонке версии появится `new X`, когда выйдет новая версия), списки по картам без пробелов (`--lock-cclock 1500,1400`).
 **Обновление:** HiveOS кэширует архивы по имени файла — берите новый Installation URL каждого релиза.
+
+**Карты CMP (0.4.3):** под штатным драйвером NVIDIA карта CMP (CMP 50HX и семейство) даёт около десятой части скорости.
+Чтобы майнер сам поставил драйвер-разблокировку CMP, добавьте `--cmp-unlock-driver` в Extra config arguments (майнеру оно
+не передаётся). Он проверяет, ставит драйвер только если его ещё нет, и **перезагружает риг**; риг, где драйвер уже стоит,
+не трогается. Это заменяет драйвер NVIDIA на всём риге: сначала прочитайте MANUAL §6 (карты CMP). Вручную: `sudo ./ffgv --cmp-driver`.

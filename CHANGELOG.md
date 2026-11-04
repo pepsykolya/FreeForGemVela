@@ -6,6 +6,48 @@ byte for byte equal to the VELA node's own CPU code). Each engine round was meas
 before it on the same cards, so the steps below are exact; the series of different rounds used slightly different
 bench scripts (±1%).
 
+## 0.4.3 — 2026-11-04
+
+**Engine — Turing only (CMP 50HX):** the first Turing (sm_75) support and its speed-up. The code of RTX 30 / 40 / 50 (sm_86 / sm_89 /
+sm_120) is not changed: 220 of 220 functions of the 0.4.2 engine are byte for byte identical in SASS (sm_86), the new Turing kernels
+are empty stubs there. CMP 50HX, batch 16, core lock 1500 MHz, the same card: **22.8 → 31.3 inf/s (+37%)** at 124 → 163 W
+(inf/s per W 0.18 → 0.20). Results are byte for byte the node's consensus (test vector, 40 seeds at batch 8 and 16).
+
+| part | what changed on Turing |
+|---|---|
+| attention | 8-warp blocks in the statistics and P·V kernels; P·V in two 6-warp blocks per SM (12 warps) with single K/V buffers; a packed 32-bit exponent table |
+| GEMM | a 128×128 tile for the wide layers, row finishing off, the deferred shared stores kept behind the first MMAs, the next `ldmatrix` after two column groups |
+| loading | the model is mapped (no second copy in RAM), automatic batch 16 |
+
+Host: brings the auto-undervolt of FreeForGem 1.7.6 and the plan of 1.7.7 (decision of 02.11.2026) to VELA. Every step is still
+decided by the consensus canaries.
+
+- **A tuning that is cut short is not lost:** a stop (Ctrl+C, SIGTERM, HiveOS `miner stop` / config change, `--minutes`) or
+  the fault of another GPU that ends the process saves the steps that passed (`uv.json`, `trying` with `foreign` and the
+  edge found); the next start goes on from two steps below the last good one instead of the baseline. Before, a stop forgot it.
+- **A fault counts only for the GPU with the Xid:** the step that the other GPUs of the process were trying (they stop with
+  the CUDA fault, but did nothing wrong) is no longer written as their edge; the same for a hang of one GPU.
+- **A failing start offset is checked once more** before the baseline goes down 30 MHz (a cold card or a one-off error
+  made one PC end at +105 instead of +225 on 01.11.2026 in FreeForGem 1.7.6).
+- **A new lock starts from the neighbour lock's profile** (kept from 0.4.1/0.4.2, now logged also for `--auto-lock` sweeps).
+- **A GPU that cannot be opened at the start** ("busy or unavailable", "GPU is lost") is waited for (1, 5, 15 min, then every
+  15 min) before the miner exits for HiveOS / `start.bat`, instead of hundreds of restarts; nothing is lowered.
+- **CMP 50HX (Turing sm_75):** `--mode` presets (speed: unlocked; balance: lock 1500; eco: lock 1350), auto-undervolt start
+  +210 / limit +450, `--auto-lock` range 1650 / 1500 / 1350. RTX 30 / RTX 40 presets are unchanged.
+- **`--cmp-driver` (HiveOS, opt-in):** installs the CMP unlock driver (NVIDIA Open Kernel Module 610.43.03 build, SHA-256 checked, with
+  `nvidia-driver-update --force`, then a reboot); nothing happens without the flag. In the flight sheet: `--cmp-unlock-driver`
+  in Extra config arguments. A stock driver makes a CMP card ~11 times slower (2.4 against 27.4 inf/s on the same engine). A rig
+  that already has the driver, or has no CMP card, is left alone. See MANUAL §6, HIVEOS.md.
+- Build scripts add `sm_75` to the default architectures.
+- **Found on a real HiveOS rig (5 x CMP 50HX, 3.8 GB RAM):**
+  - the engines load the model one at a time when the free RAM does not hold more (every load reads the 1.2 GB file into RAM;
+    five at once swapped for minutes at 0 inf/s). Linux: MemAvailable, Windows: available physical memory;
+  - a hang while a GPU is still opening (model load, self-test) is no edge of its undervolt offset: nothing is counted against
+    it and every card's tuning is kept (a GPU that cannot be opened twice in a row is left out for an hour instead);
+  - a stop at any moment (also before mining began: the model still loads, a pool is not reached, a start error) keeps the tuning
+    of every GPU; a process killed (SIGKILL, OOM killer, power) before a step ran its first inference does not make that step an
+    edge; a profile that was never measured (`0.00 inf/s @ 0 W`, the limit left by a crash) stays "unchecked".
+
 ## 0.4.2 — 2026-11-01
 
 Engine: **+3.7% inf/s** on the RTX 3070 and the RTX 4070 Ti (bench 400 at a fixed clock, the same host, old / new / old /

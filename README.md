@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.2
+# FreeForGemVela (ffgv) 0.4.3
 
 Native GPU miner for **VELA** (Proof-of-Inference, integer sd-turbo) on NVIDIA RTX 30 / 40 / 50.
 HiveOS and Windows packages. Dev fee **1%**. Русская версия — [README.ru.md](README.ru.md).
@@ -12,14 +12,14 @@ HiveOS and Windows packages. Dev fee **1%**. Русская версия — [RE
 
 ## Download
 
-Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.2
+Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.3
 
 | package | file |
 |---|---|
-| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz |
-| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-0.4.2-linux-x86_64.tar.gz |
-| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-0.4.2-windows-x64.zip |
-| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/SHA256SUMS |
+| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz |
+| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-0.4.3-linux-x86_64.tar.gz |
+| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-0.4.3-windows-x64.zip |
+| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/SHA256SUMS |
 
 The miner binary is `ffgv` (`ffgv.exe` on Windows).
 
@@ -42,6 +42,10 @@ The miner binary is `ffgv` (`ffgv.exe` on Windows).
 | RTX 3080 Ti (350 W), 0.4.0 | balance | yes | lock 1500, core +120 | 56.85 | 263.7 | 0.216 |
 | RTX 3080 Ti (350 W), 0.4.0 | eco | yes | lock 1400, mem 5001, core +225 | 49.35 | 209.6 | 0.235 |
 | RTX 4070 Laptop (laptop limit), 0.4.0 | stock | no | — | 30.05 | 67.9 | 0.443 |
+| CMP 50HX (225 W), 0.4.3 engine, bench | speed (= stock) | no | — | 34.5 | 219 | 0.157 |
+| CMP 50HX (225 W), 0.4.3 engine, bench | 1650 MHz | yes | lock 1650, core +240 | 35.1 | 183 | 0.192 |
+| CMP 50HX (225 W), 0.4.3 engine, bench | balance | yes | lock 1500, core +300 | 32.6 | 151 | 0.216 |
+| CMP 50HX (225 W), 0.4.3 engine, bench | eco | yes | lock 1350, core +300 | 29.6 | 134 | 0.220 |
 
 The power limit is only a ceiling here (RTX 3070 200 W, RTX 4070 Ti 235 W): the mode sets the clocks, the undervolt the
 voltage. **RTX 3070:** `balance` with the undervolt mines at 122 W, `eco` at 100 W (+11% inf/s/W for −9% inf/s against
@@ -50,6 +54,11 @@ voltage. **RTX 3070:** `balance` with the undervolt mines at 122 W, `eco` at 100
 for −9% / −26% inf/s (+19% / +23% inf/s/W), the undervolt on top of a lock changes little. **RTX 3080 Ti** (Windows, 0.4.0
 engine — 0.4.2 is ~3–4% faster at the same clocks): the clock locks give `balance` −7.5% inf/s at −21% power and `eco` −20%
 inf/s at −37% power; the undervolt on top adds +7% inf/s/W in `balance` and +2.5% in `eco`.
+
+**CMP 50HX** (Turing; the offset works through NVML, no edge found up to +420): unlocked it hits its 225 W limit at 34.5 inf/s
+(the clock settles near 1635 MHz); `balance` (lock 1500, +300) is −5% inf/s for −31% power (+37% inf/s per W), `eco` (lock 1350,
++300) +40% inf/s per W. The CMP rows are offline engine benchmark runs (batch 16, 04.11.2026) on a rig with the CMP unlock driver,
+not mining; without that driver these cards run about 11 times slower (MANUAL §6, `--cmp-driver`).
 
 How it was measured: release 0.4.2, Linux, driver 580.178, mining on AriaPool; each value is the average of the miner's
 API over 3 minutes after the auto-undervolt had settled (one run per point, 01.11.2026; the undervolt profiles tuned from
@@ -65,7 +74,8 @@ HiveOS flight sheet (with a ready one to import): [HIVEOS.md](HIVEOS.md) · chan
 
 ## Requirements
 
-- NVIDIA RTX 30 (sm_86), RTX 40 (sm_89) or RTX 50 (sm_120); 6 GB VRAM or more (8 GB recommended).
+- NVIDIA RTX 30 (sm_86), RTX 40 (sm_89) or RTX 50 (sm_120); 6 GB VRAM or more (8 GB recommended). New in 0.4.3: Turing
+  (sm_75), the mining card CMP 50HX (tested, own presets); RTX 20 loads the same code, no presets.
 - NVIDIA driver with CUDA 12 support (R525 or newer; RTX 50 needs R570 or newer). Tested on 580.178 (Linux) and 576.57 (Windows).
   Memory offset (`--moffset`, auto-undervolt of memory) needs R555 or newer.
 - Linux x86_64 (HiveOS or any glibc distribution) or Windows 10/11 x64.
@@ -83,7 +93,7 @@ Miner **Custom** → Setup Miner Config:
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.2/ffgv-hive-0.4.2.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | see the pool examples below (several, space separated = failover) |
@@ -103,7 +113,7 @@ profile's values back. The HiveOS dashboard reads speed, temperatures, fans, acc
 
 ## Windows
 
-1. Unpack `ffgv-0.4.2-windows-x64.zip` to a folder without spaces, e.g. `C:\FreeForGemVela`.
+1. Unpack `ffgv-0.4.3-windows-x64.zip` to a folder without spaces, e.g. `C:\FreeForGemVela`.
 2. Right-click `start.bat` → Edit: set `WALLET` to **your** address (the example address is the developer's), `POOL`, `WORKER`,
    optionally `MODE=balance`.
 3. Run `start.bat` (as administrator if you use `MODE`, `AUTO_UV` or clock settings). The first start downloads the model
@@ -149,6 +159,11 @@ the modes). The result is saved per GPU and per clock setting (`uv.json`); next 
 While mining, a canary runs every 120 s; a failure lowers the offset by 30 MHz. A GPU that hangs for 40 s is caught: the
 miner lowers what it tried, restores your settings and exits with code 3 so that HiveOS / `start.bat` restart it.
 `--uv-reset` forgets the profile of the current clocks, `--uv-reset-all` forgets all.
+
+**New in 0.4.3:** the steps of an interrupted auto-undervolt are kept (a stop, or the fault of another GPU of the process, no
+longer sends the tuning back to the start, and only the GPU with the Xid gets its step written as failed); a start offset that
+fails is checked once more before the miner goes down; a GPU that cannot be opened is waited for (1, 5, 15 min) before the
+miner exits; CMP 50HX presets (`--mode`, `--auto-uv` start +210, `--auto-lock` 1650/1500/1350); `--cmp-driver` (HiveOS, opt-in: installs the CMP unlock driver).
 
 `--auto-lock` (new in 0.4.2) picks the core clock lock per GPU: it mines at several locks (by default 7 locks 100 MHz
 apart, from 1800 on RTX 30 and 2700 on RTX 40 / 50, nothing above the card's maximum), each at its own auto-undervolt

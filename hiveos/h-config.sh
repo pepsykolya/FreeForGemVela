@@ -8,6 +8,7 @@
 #   Wallet/worker (CUSTOM_TEMPLATE)    %WAL%.%WORKER_NAME%  (or just %WAL%)
 #   Pass          (CUSTOM_PASS)        normally empty (x)
 #   Extra config  (CUSTOM_USER_CONFIG) extra arguments, e.g. --mode balance   --auto-uv   --lock-cclock 1500   --devices 0,1   --pl 135
+#                                      add  --cmp-unlock-driver  to install the CMP-unlock NVIDIA driver on CMP rigs (see h-run.sh)
 cd "$(dirname "$0")"
 . ./h-manifest.conf
 

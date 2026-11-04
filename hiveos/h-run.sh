@@ -10,6 +10,25 @@ mkdir -p "$(dirname "$CUSTOM_LOG_BASENAME")"
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 [[ -z ${NO_COLOR:-} ]] && export FFG_COLOR=${FFG_COLOR:-1}
 
+CFG="$(< "$CUSTOM_CONFIG_FILENAME")"
+
+# Optional: install the CMP-unlock NVIDIA driver before mining when the flight sheet asks for it.
+# NVIDIA CMP mining cards (50HX and the like) compute at about 1/32 under the stock driver; the unlock
+# driver lifts that. To turn it on, add  --cmp-unlock-driver  to the flight-sheet field
+# "Extra config arguments" (CUSTOM_USER_CONFIG); the same word without the dashes works too. It is NOT passed
+# to the miner (it would stop with "unknown option"). `ffgv --cmp-driver`
+# is idempotent and opt-in: on a rig that is not yet unlocked it verifies the pinned driver by SHA-256,
+# installs it with the stock HiveOS nvidia-driver-update and reboots (mining starts on the next boot);
+# on a rig already on the unlock driver, or without a CMP card / without root, it changes nothing and we
+# keep mining on the current driver.
+if [[ " $CFG " == *" --cmp-unlock-driver "* || " $CFG " == *" cmp-unlock-driver "* ]]; then
+  CFG=" ${CFG} "
+  CFG="${CFG// --cmp-unlock-driver / }"; CFG="${CFG// cmp-unlock-driver / }"   # drop the token from the miner arguments
+  CFG="${CFG// --cmp-unlock-driver / }"; CFG="${CFG// cmp-unlock-driver / }"   # (twice: a repeated token shares its space)
+  echo "ffgv: --cmp-unlock-driver requested — checking/installing the CMP-unlock driver"
+  ./ffgv --cmp-driver || echo "ffgv: --cmp-driver returned $? — keeping the current driver, mining continues"
+fi
+
 # the model (1.19 GB, not in the package): one copy per rig in /hive/miners/custom/vela-model, checked by sha256
 MODEL_DIR=/hive/miners/custom/vela-model
 MODEL=$MODEL_DIR/sd-turbo-int.poisd
@@ -35,4 +54,4 @@ fi
 
 # tee -i: `miner stop` sends SIGINT to the whole pipeline; tee must outlive the miner so that its shutdown (the owner's
 # offsets/clocks put back) is logged
-./ffgv --model "$MODEL" --api-port "$FFGV_API_PORT" $(< "$CUSTOM_CONFIG_FILENAME") 2>&1 | tee -i --append "${CUSTOM_LOG_BASENAME}.log"
+./ffgv --model "$MODEL" --api-port "$FFGV_API_PORT" $CFG 2>&1 | tee -i --append "${CUSTOM_LOG_BASENAME}.log"
