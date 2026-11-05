@@ -7,6 +7,9 @@ FreeForGemVela (ffgv) for Windows - GPU miner for VELA (Proof-of-Inference)
    The console window is the log (no log files). Ctrl+C stops the miner; your GPU settings are put back.
 
 Needs: NVIDIA RTX 30 series or newer, 6+ GB VRAM (8 GB recommended), a recent NVIDIA driver.
+AMD (new in 0.4.4): a Radeon RX 6800 / 6800 XT / 6900 XT / 6950 XT (Navi 21; no other Radeon in 0.4.4), 8+ GB VRAM, the Adrenalin driver (OpenCL; nothing else to install). The AMD package
+has velagpu_amd.dll, amduv.exe and adlx_mon.exe next to ffgv.exe; MODE / AUTO_UV / AUTO_LOCK work on a Radeon too (see README, 'AMD Radeon').
+Clock / voltage settings of a Radeon need "Run as administrator"; your settings are put back on every exit.
 Dev fee: 1% of the mining time (one 60 s slot every 100 minutes).
 
 Ready modes: MODE=speed | balance | eco (clock presets per GPU family + the undervolt auto-tuner for them; your

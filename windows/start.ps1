@@ -25,7 +25,8 @@ if ($root -match '\s|[^\x00-\x7F]') {
     Write-Host "         If the miner fails to start, move the folder to e.g. C:\FreeForGemVela" -ForegroundColor Yellow
 }
 if (-not (Test-Path -LiteralPath (Join-Path $root 'ffgv.exe'))) { Fail 'ffgv.exe is missing - unpack the whole archive again.' }
-if (-not (Test-Path -LiteralPath (Join-Path $root 'velagpu.dll'))) { Fail 'velagpu.dll (the GPU engine) is missing - unpack the whole archive again.' }
+# the CUDA engine (NVIDIA) and / or the OpenCL engine of AMD cards (0.4.4: velagpu_amd.dll with amduv.exe and adlx_mon.exe)
+if (-not ((Test-Path -LiteralPath (Join-Path $root 'velagpu.dll')) -or (Test-Path -LiteralPath (Join-Path $root 'velagpu_amd.dll')))) { Fail 'velagpu.dll / velagpu_amd.dll (the GPU engine) is missing - unpack the whole archive again.' }
 
 # wallet / worker / pools
 if ([string]::IsNullOrWhiteSpace($Wallet)) {
@@ -67,6 +68,8 @@ if ($smiPath) {
         if ($mib -lt 6000) { Write-Host '  WARNING: less than 6 GB VRAM - the model may not fit; add --batch 2 to EXTRA if loading fails' -ForegroundColor Yellow }
         if ($f[1] -notmatch 'RTX (30|40|50)|RTX A|RTX PRO|CMP (70|90|170)') { Write-Host '  WARNING: RTX 30 series or newer is needed' -ForegroundColor Yellow }
     }
+} elseif (Test-Path -LiteralPath (Join-Path $root 'velagpu_amd.dll')) {
+    Write-Host 'No NVIDIA driver here: the AMD Radeon cards are listed by the miner itself (needs the Adrenalin driver).'
 } else {
     Write-Host 'WARNING: nvidia-smi.exe not found; the GPU check is skipped' -ForegroundColor Yellow
 }

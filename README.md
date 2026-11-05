@@ -1,7 +1,7 @@
-# FreeForGemVela (ffgv) 0.4.3
+# FreeForGemVela (ffgv) 0.4.4
 
-Native GPU miner for **VELA** (Proof-of-Inference, integer sd-turbo) on NVIDIA RTX 30 / 40 / 50.
-HiveOS and Windows packages. Dev fee **1%**. Русская версия — [README.ru.md](README.ru.md).
+Native GPU miner for **VELA** (Proof-of-Inference, integer sd-turbo) on NVIDIA RTX 30 / 40 / 50 and, new in 0.4.4 (Windows first),
+AMD Radeon RX 6800 / 6800 XT / 6900 XT / 6950 XT (Navi 21, Windows). HiveOS and Windows packages. Dev fee **1%**. Русская версия — [README.ru.md](README.ru.md).
 
 - Every share is computed bit-exact to the VELA node's consensus code and re-checked before it is sent.
 - Built-in auto-undervolt checked by consensus canaries (an undervolted GPU on VELA first computes a *wrong* result
@@ -12,14 +12,14 @@ HiveOS and Windows packages. Dev fee **1%**. Русская версия — [RE
 
 ## Download
 
-Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.3
+Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.4
 
 | package | file |
 |---|---|
-| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz |
-| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-0.4.3-linux-x86_64.tar.gz |
-| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-0.4.3-windows-x64.zip |
-| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/SHA256SUMS |
+| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz |
+| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-0.4.4-linux-x86_64.tar.gz |
+| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-0.4.4-windows-x64.zip |
+| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/SHA256SUMS |
 
 The miner binary is `ffgv` (`ffgv.exe` on Windows).
 
@@ -85,6 +85,74 @@ HiveOS flight sheet (with a ready one to import): [HIVEOS.md](HIVEOS.md) · chan
   - https://dl.ariabrain.com/vela-dl/sd-turbo-int.poisd (mirror)
   - sha256 `ba38ab96b3398e22ea631d8a457350f91833e57463199d063663308513651f36`
 
+## AMD Radeon (new in 0.4.4)
+
+The same miner, the same pools and the same consensus check run on AMD Radeon cards through a second GPU engine, `velagpu_amd.dll`
+(OpenCL). It is bit-exact with the node like the CUDA engine: the test vector and all 56 consensus canaries are byte for byte the node's
+results on the RX 6800 XT (the miner checks them at every start), and every share is recomputed before it is sent.
+
+- **Needs:** a Radeon of the Navi 21 family (gfx1030: RX 6800, 6800 XT, 6900 XT, 6950 XT; no other Radeon is supported in 0.4.4; measured on one card: RX 6800 XT 16 GB, gfx1030, Adrenalin 25.5.1), Windows 10/11 x64,
+  the Adrenalin driver (its OpenCL is all the engine uses: no HIP / ROCm SDK, no CUDA, nothing else to install). 8 GB of VRAM or
+  more is recommended: the model takes 1.25 GB and each attempt of the batch about 0.26 GB (batch 16 needs ~5.8 GB, batch 8 ~3.7 GB);
+  with `--batch 0` (default) the miner takes the largest of 16 / 8 / 4 / 2 / 1 that fits the free VRAM and warns when a given batch does not.
+  Clock and voltage settings may need "Run as administrator" (the tests ran from an administrator session).
+- **Files next to `ffgv.exe`:** `velagpu_amd.dll` (the engine), `amduv.exe` (sets and restores the clock cap, the core voltage and the power
+  limit of the card through the driver's ADLX; our program), `adlx_mon.exe` (reads power, clock and temperature; our program).
+  Without `amduv.exe` the card is mined as it is (no settings); without `adlx_mon.exe` there is no power reading, so eco / balance searches
+  are off (a preset and fixed values still work).
+- **Cards are found by name and architecture, not by index.** An integrated Radeon of a Ryzen is not used (`--amd-igpu` lists it, too slow
+  to be worth it). `--devices` numbers the NVIDIA cards first and then the AMD cards (PCI bus order inside each vendor), so an NVIDIA-only
+  rig is numbered exactly as before; `--devices amd0,nv1` counts inside one vendor. `--no-amd` / `--no-nvidia` leave a vendor out.
+  A package without `velagpu_amd.dll` is the NVIDIA package of 0.4.3 (its CUDA engine is not touched).
+- **Measured, RX 6800 XT (batch 16, Windows; whole engine, 4000 inferences per point, every x0 compared with the CPU hash; W = ASIC (chip)
+  power from the driver, not the whole card or the wall):**
+
+  | clock cap / voltage | inf/s | W | inf/s/W | wrong x0 of 4000 |
+  |---|---|---|---|---|
+  | 2324 MHz / 1150 mV (stock) | 23.22 | 271.8 | 0.085 | 0 |
+  | 2324 MHz / 1050 mV (931 mV really) | 23.38 | 230.2 | 0.102 | 0 |
+  | 2250 MHz / 881 mV | 22.77 | 202.8 | 0.112 | **35** (the first at the 138th) |
+  | 2200 MHz / 881 mV | 22.39 | 200.0 | 0.112 | 0 |
+  | 2150 MHz / 881 mV | 21.98 | 198.1 | 0.111 | 0 |
+
+  881 mV is the lowest voltage the driver accepts. Note the 2250 MHz row: its canary rounds before and after the run passed 56/56.
+- **Undervolting a Radeon is a risk, and the miner treats it as one.** Past its edge a card does not stop: it computes WRONG results without
+  any sign (the pool then rejects the shares), and further past it the video driver HANGS - on the test card 2324 MHz at a voltage slider of
+  1000 mV (881-887 mV really) broke every result and killed the OpenCL queue; only a restart of the video driver (Win+Ctrl+Shift+B) or of the
+  PC brings such a card back. The step between the clean 1050 mV and the hanging 1000 mV was one step. Hence: every approach to an edge starts on the
+  safe side in small steps; every step is checked first by consensus canaries back to back, then the point you end on is confirmed for at least **150 s
+  and 4000 verified inferences** (about 4-5 minutes on a 6800 XT: the canary runs at ~16 verified inferences per second); the miner NEVER goes on to
+  the next step after an error; the card's values are written only after yours are saved, and on every exit they are put back. If the video driver
+  hangs, the miner puts your settings back, says so ("the video driver hung ... Win+Ctrl+Shift+B"), remembers the value as a failure in `amd-uv.json`
+  and never tries it (or anything more aggressive) again; `--uv-reset-all` forgets that. A short canary is not enough to call a setting safe, and a
+  setting that was clean on one card may be wrong on another: use the ready modes only on the card they were measured on.
+- **Modes (`--mode`):**
+
+  | mode | RX 6800 XT | what the miner does |
+  |---|---|---|
+  | `eco` | 2150 MHz / 881 mV | 100 MHz below the first failure (2250); the long check, then mining: 21.98 inf/s at 198 W |
+  | `balance` | from 2324 MHz / 1100 mV, down in 25 mV steps, floor 1050 mV | each step checked, the first error stops the descent (back to the last good step), the long check on the last good one; the clean end of the descent (2324 / 1050) gave 23.38 inf/s at 230 W |
+  | `speed` | 2324 MHz / 1150 mV (stock) | the card is power-limited at ~270 W there: no faster point exists |
+
+  No preset exists for other cards: `--mode` and `--auto-uv` search them. A failed check of a preset steps the clock back (50 MHz; at last a
+  search). Results are saved per card (`amd-uv.json` next to `uv.json`); later starts do a 20 s quick check of a confirmed result. While
+  mining a canary runs every 120 s: a failure steps the clock back 25 MHz and checks again; two in a row give your settings back.
+  `--auto-uv` (and `--auto-lock`) search: the clock cap is raised from 1900 MHz in 50 MHz steps (25 MHz inside a failing interval) at the lowest
+  voltage until the canary fails; the result stays one margin step below the edge and goes through the long check. The voltage is never lowered by
+  the search and never raised past the edge. `--auto-lock` takes the best inf/s per W within `--auto-lock-max-loss` % of the fastest
+  (`--auto-lock-goal speed`: the fastest).
+- **Own values:** `--lock-cclock MHz` is the clock cap of a Radeon, `--amd-volt mV`, `--amd-pl PERCENT` (lists per GPU like the other
+  options; on a rig with NVIDIA and AMD cards a single `--lock-cclock` value is for the NVIDIA cards only). `--lock-mclock`, `--moffset`, `--pl`
+  (watts) and `--uv-offset` are NVIDIA options and are ignored on a Radeon (logged). Your own voltage is yours to judge: the miner checks it
+  but cannot make an unsafe value safe.
+- **Your settings are always put back:** `amduv.exe` writes the card's values only after it saved yours to a file; on every exit
+  (Ctrl+C, a stop, an error, a hang) they are restored; a small guard process restores them if the miner process dies or is killed;
+  if the whole process tree is killed (`taskkill /T`, Task Scheduler's Stop) the next start of `ffgv` (or of `amduv.exe`) puts them back.
+- **Limits of this release:** Windows first. The Linux / HiveOS AMD code (the same engine, settings through amdgpu `sysfs`) is written
+  but was never run on a Linux Radeon: do not rely on it. One setting session at a time (the driver's ADLX): several identical Radeons
+  cannot be told apart by it, so they are mined as they are (different models are tuned). The numbers above are one card
+  (RX 6800 XT); the other Navi 21 cards (RX 6800, 6900 XT, 6950 XT) run the same kernels with no preset (not measured); other Radeon generations (RX 6700 and below, RDNA3, RDNA4) are not supported in 0.4.4: the engine carries precompiled kernels for gfx1030 only, and the miner says so.
+
 ## HiveOS
 
 Flight sheet: Coin **VELA** (add a custom coin if it is not in the list), your wallet, Pool **Configure in miner**,
@@ -93,7 +161,7 @@ Miner **Custom** → Setup Miner Config:
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.3/ffgv-hive-0.4.3.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | see the pool examples below (several, space separated = failover) |
@@ -113,7 +181,7 @@ profile's values back. The HiveOS dashboard reads speed, temperatures, fans, acc
 
 ## Windows
 
-1. Unpack `ffgv-0.4.3-windows-x64.zip` to a folder without spaces, e.g. `C:\FreeForGemVela`.
+1. Unpack `ffgv-0.4.4-windows-x64.zip` to a folder without spaces, e.g. `C:\FreeForGemVela`.
 2. Right-click `start.bat` → Edit: set `WALLET` to **your** address (the example address is the developer's), `POOL`, `WORKER`,
    optionally `MODE=balance`.
 3. Run `start.bat` (as administrator if you use `MODE`, `AUTO_UV` or clock settings). The first start downloads the model
@@ -215,6 +283,7 @@ and then returns to your login. The log shows each slot.
 
 ## What is in the package
 
-`ffgv` / `ffgv.exe` (host program), `libvelagpu.so` / `velagpu.dll` (GPU engine, binary only), start scripts
+`ffgv` / `ffgv.exe` (host program), `libvelagpu.so` / `velagpu.dll` (GPU engine, binary only; the Windows AMD package adds `velagpu_amd.dll`,
+`amduv.exe`, `adlx_mon.exe`), start scripts
 (HiveOS `h-*.sh` or Windows `start.bat` / `start.ps1`), README, MANUAL, CHANGELOG, LICENSE, NOTICE. The model is not in the
 package. Licence: free to use and redistribute unmodified; the 1% dev fee must stay intact (see LICENSE); third-party components: NOTICE.

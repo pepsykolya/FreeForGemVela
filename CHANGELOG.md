@@ -6,6 +6,48 @@ byte for byte equal to the VELA node's own CPU code). Each engine round was meas
 before it on the same cards, so the steps below are exact; the series of different rounds used slightly different
 bench scripts (±1%).
 
+## 0.4.4 — 2026-11-05
+
+- **The miner downloads the model itself.** When the `--model` file is not there at the start, `ffgv` downloads `sd-turbo-int.poisd`
+  (1.19 GB) from Hugging Face (mirror: dl.ariabrain.com), continues a broken download at the next try (HTTP Range), and checks the
+  sha256 before it puts the file in place: a half-loaded or a wrong file is never taken for the model. A lock file keeps two miners
+  that start together from writing the same file. Nothing is touched when the model is there. `--no-model-download` turns it off.
+  Before, only the Windows start scripts and the HiveOS `h-run.sh` did it; a plain Linux server or a container had to download the
+  file by hand. Built into the miner (its own HTTPS client, no curl / wget needed).
+- **AMD Radeon cards (Navi 21: RX 6800 / 6800 XT / 6900 XT / 6950 XT), Windows only in this release.** A second GPU engine, `velagpu_amd.dll` (OpenCL of the Adrenalin driver; no
+  HIP / ROCm SDK, no CUDA, nothing to install), loaded next to the CUDA engine through the same C API: the test vector and all 56 consensus canaries
+  are byte for byte the node's results on an RX 6800 XT (checked by the miner at every start). The CUDA engine and its SASS are not touched;
+  a package without `velagpu_amd.dll` is the NVIDIA package of 0.4.3 and behaves the same. RX 6800 XT, batch 16, Windows, chip (ASIC) power, 4000 inferences
+  per point with every x0 compared with the CPU hash: stock 2324 MHz / 1150 mV 23.22 inf/s at 271.8 W (0.085 inf/s/W); 2324 / 1050 23.38 inf/s at 230.2 W (0.102);
+  2200 / 881 22.39 inf/s at 200.0 W; **2150 / 881 (`--mode eco`) 21.98 inf/s at 198.1 W (0.111: -5% speed, -27% power, +30% inf/s per W)**; 2250 / 881 gave **35 wrong x0
+  of 4000** (and passed 56/56 canaries before and after).
+  - **Kernels are precompiled.** `velagpu_amd.dll` carries the GPU kernels as binaries of the driver's own compiler for gfx1030 (Navi 21) and no kernel
+    source text; the driver does not compile anything at the start, which is also why other Radeon chips (RX 6700 and below, the integrated Radeon of a
+    Ryzen, RDNA3 / RDNA4) are not supported in 0.4.4: the miner finds no kernels for them and says so. The CUDA engine is byte for byte the engine of 0.4.3.
+  - **One list of GPUs.** NVIDIA cards first (CUDA order = PCI bus order, as before), then AMD cards (PCI bus order). `--devices` takes these
+    numbers, or `nvN` / `amdN` inside one vendor; `--no-amd`, `--no-nvidia`, `--amd-igpu` (the integrated Radeon of a Ryzen is never a default).
+    A Radeon is found by name and architecture, not by index.
+  - **VRAM and batch.** The model takes 1.25 GB and each attempt of the batch ~0.26 GB (2.0 GB at batch 8, 4.1 GB at batch 16): `--batch 0` takes
+    the largest of 16 / 8 / 4 / 2 / 1 that fits the free VRAM (16 on 8 GB and 16 GB cards, 8 on 6 GB, 4 on 4 GB); a given batch that does
+    not fit is warned about; a card under 3 GB is refused.
+  - **Undervolting a Radeon is a risk (documented in README / MANUAL).** Past its edge the card computes wrong results silently, and further past it the video
+    driver hangs (2324 MHz at 1000 mV hung the test card; only a driver reset (Win+Ctrl+Shift+B) or a reboot cures it). So every approach starts on the safe side in
+    small steps, every step is checked first by canaries back to back, the point you end on is confirmed for >= 150 s and >= 4000 verified inferences, and the
+    miner never takes a step after an error. On a hang it puts the owner's settings back, says "the video driver hung ... Win+Ctrl+Shift+B" and remembers the value
+    (and anything more aggressive) as a failure in `amd-uv.json`.
+  - **Card settings for AMD** (`--mode`, `--auto-uv`, `--auto-lock`, `--lock-cclock` = clock cap, `--amd-volt`, `--amd-pl`): our `amduv.exe` (ADLX, as a
+    separate process) sets the clock cap, the core voltage and the power limit; `adlx_mon.exe` reads power / clock / temperature (never together with
+    `amduv`: one ADLX session at a time). Presets for the RX 6800 XT: `eco` 2150 MHz / 881 mV; `balance` from 2324 / 1100 down in 25 mV steps (floor 1050), each step checked,
+    the first error stops it; `speed` the stock 2324 / 1150 (power-limited at ~270 W: nothing faster exists). 2400 / 1100 is not a preset (not measured on VELA).
+    `--auto-uv` raises the clock cap at the lowest voltage until the canary fails and stays one margin below the edge; the voltage is never lowered by a search
+    and never raised past the edge. Results are saved per card in `amd-uv.json`; later starts check them in 20 s; a canary failure while mining steps the clock back
+    25 MHz, two in a row give the owner's settings back.
+  - **Always put back.** The owner's values are saved to a file before the first write and restored on every exit; a small guard process restores them if
+    the miner is killed or crashes; after a killed process tree the next start of `ffgv` restores them (marker `amd-restore-<pid>.json`, like `clocks-restore`).
+  - **Limits.** Windows first: the Linux / HiveOS AMD code (the same engine, settings through amdgpu `sysfs`) is written from the kernel documentation and
+    was never run on a Linux Radeon. Several identical Radeons cannot be told apart by ADLX: they are mined as they are. Only the RX 6800 XT is measured (the other Navi 21 cards run the same kernels, not measured). Not verified: Linux / HiveOS on a Radeon (the Linux and HiveOS packages of 0.4.4
+    do not contain the AMD engine), the auto-undervolt (`--mode balance`, `--auto-uv`, `--auto-lock`) steps on other copies of the card, other drivers than Adrenalin 25.5.1.
+
 ## 0.4.3 — 2026-11-04
 
 **Engine — Turing only (CMP 50HX):** the first Turing (sm_75) support and its speed-up. The code of RTX 30 / 40 / 50 (sm_86 / sm_89 /

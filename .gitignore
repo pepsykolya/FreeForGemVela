@@ -2,3 +2,5 @@
 *.part
 uv.json
 gpu-faults.json
+amd-uv.json
+amd-restore-*.json
