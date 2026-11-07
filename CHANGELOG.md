@@ -6,6 +6,21 @@ byte for byte equal to the VELA node's own CPU code). Each engine round was meas
 before it on the same cards, so the steps below are exact; the series of different rounds used slightly different
 bench scripts (±1%).
 
+## 0.4.5 — 2026-11-07
+
+- **New-version notice in HiveOS now reads `need update!!`** (owner's decision 06.11.2026, for all our miners): the version column shows
+  `0.4.4 0.2023 inf/s/W, need update!!` instead of `, new 0.4.5`. The log line still names the new version and the release URL.
+
+- **Solo: submitting a block no longer stops the polling for a new one.** `submitblock` now runs in its own thread. Before, the poll
+  loop waited for the node's answer, and a node verifies a block with an inference on its CPU (seconds): a solo miner saw new jobs
+  15–17 s late (log: tip at 21:16:28, `inconclusive` reject at :44, new job at :45), all GPUs worked on the old block meanwhile. Also: a node
+  of your own (loopback / private network / Tailscale 100.64.0.0/10 / `.local`) is polled every 0.5 s instead of 2 s (public pools stay at 2 s); a submit that
+  takes over 2 s is logged (`submitblock took N s`); a share that went stale while it waited in the queue is not sent.
+- **Node RPC over a kept (HTTP keep-alive) connection** instead of a new TCP connection per call. A poll is now one round trip; on a lossy
+  VPN (a rig on another site, 17% packet loss to the node) one lost SYN used to cost 1–2 s per call. A connection the node closed in the
+  meantime is replaced by a new one (not after a timeout, so a block is never sent twice).
+- **suprnova is now the first pool in all examples** (README, MANUAL, HIVEOS, `--help`); AriaPool is still supported and listed after it.
+
 ## 0.4.4 — 2026-11-05
 
 - **The miner downloads the model itself.** When the `--model` file is not there at the start, `ffgv` downloads `sd-turbo-int.poisd`

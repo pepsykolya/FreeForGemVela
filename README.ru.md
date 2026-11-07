@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.4
+# FreeForGemVela (ffgv) 0.4.5
 
 Собственный GPU-майнер для **VELA** (Proof-of-Inference, целочисленный sd-turbo) на NVIDIA RTX 30 / 40 / 50 (и CMP 50HX) и на AMD Radeon RX 6800 / 6800 XT / 6900 XT / 6950 XT (Navi 21, Windows).
 Пакеты для HiveOS, Linux и Windows. Комиссия разработчика **1%**. English — [README.md](README.md).
@@ -12,14 +12,14 @@
 
 ## Скачать
 
-Страница релиза: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.4
+Страница релиза: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.5
 
 | пакет | файл |
 |---|---|
-| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz |
-| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-0.4.4-linux-x86_64.tar.gz |
-| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-0.4.4-windows-x64.zip |
-| контрольные суммы | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/SHA256SUMS |
+| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz |
+| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-0.4.5-linux-x86_64.tar.gz |
+| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-0.4.5-windows-x64.zip |
+| контрольные суммы | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/SHA256SUMS |
 
 Бинарник майнера — `ffgv` (`ffgv.exe` в Windows).
 
@@ -161,7 +161,7 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 | поле | значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится из URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | см. примеры пулов ниже (несколько через пробел — резервные) |
@@ -177,11 +177,11 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 Если HiveOS снова применит свой OC во время работы майнера (смена OC в веб-панели), майнер за ~10 с вернёт свои локи,
 снятый лок памяти и свой лимит мощности. `miner stop` сначала даёт картам доделать батч, затем возвращает значения
 OC-профиля. Панель HiveOS берёт скорость, температуры, вентиляторы и принятые/отклонённые шары из API майнера
-(`h-stats.sh`, порт 4078); в колонке версии — inf/s/W рига и `new X`, когда вышла новая версия.
+(`h-stats.sh`, порт 4078); в колонке версии — inf/s/W рига и `need update!!`, когда вышла новая версия.
 
 ## Windows
 
-1. Распакуйте `ffgv-0.4.4-windows-x64.zip` в папку без пробелов, например `C:\FreeForGemVela`.
+1. Распакуйте `ffgv-0.4.5-windows-x64.zip` в папку без пробелов, например `C:\FreeForGemVela`.
 2. Правой кнопкой по `start.bat` → «Изменить»: впишите в `WALLET` **свой** адрес (в примере стоит адрес разработчика),
    `POOL`, `WORKER`, при желании `MODE=balance`.
 3. Запустите `start.bat` (от администратора, если используете `MODE`, `AUTO_UV` или частоты). При первом запуске скачается
@@ -195,18 +195,18 @@ OC-профиля. Панель HiveOS берёт скорость, темпер
 ## Пулы
 
 ```
-# AriaPool
-ffgv --pool http://159.69.194.46:3349 --user vela1ВАШАДРЕС.rig1
 # suprnova, stratum по TCP / по TLS (шифрование)
 ffgv --pool stratum+tcp://vela.suprnova.cc:7601 --user vela1ВАШАДРЕС.rig1
 ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --user vela1ВАШАДРЕС.rig1
 # соло через свою синхронизированную ноду VELA (RPC)
 ffgv --pool http://RPCUSER:RPCPASS@127.0.0.1:19732 --user vela1ВАШАДРЕС
+# AriaPool
+ffgv --pool http://159.69.194.46:3349 --user vela1ВАШАДРЕС.rig1
 # резерв: первый пул основной, следующие — запасные
 ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --pool http://159.69.194.46:3349 --user vela1ВАШАДРЕС.rig1 --mode balance
 ```
 
-Pool URL для HiveOS: `http://159.69.194.46:3349`, `stratum+tcp://vela.suprnova.cc:7601`, `stratum+ssl://vela.suprnova.cc:7604`,
+Pool URL для HiveOS: `stratum+ssl://vela.suprnova.cc:7604`, `stratum+tcp://vela.suprnova.cc:7601`, `http://159.69.194.46:3349`,
 `http://RPCUSER:RPCPASS@IP_НОДЫ:19732`. Для suprnova есть `--suggest-diff D` (стартовая сложность шары).
 
 ## Режимы и автоандервольт

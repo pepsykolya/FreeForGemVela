@@ -21,7 +21,7 @@ Several URLs separated by spaces = failover (the first is the primary).
 2. **Flight Sheets** → **Import from Clipboard** and paste:
 
 ```json
-{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
+{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
 ```
 
 3. Pick your `VELA` wallet in the red-marked field (the import carries no wallet), **Create flight sheet**, apply it to the rig.
@@ -35,7 +35,7 @@ Coin `VELA`, Wallet: yours, Pool: *Configure in miner*, Miner: **Custom** → *S
 | Field | Value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (or another pool from the table) |
@@ -54,7 +54,7 @@ GPUs finish their batch, then puts the profile's values back. Details: MANUAL §
 
 **More in Extra config arguments (0.4.2):** `--auto-lock` (the miner picks the core lock per GPU, saved in
 `/hive-config/ffgv`), `--api 4078` with `/summary`, `/gpus`, `/metrics` (h-stats keeps working either way),
-`--no-update-check` (otherwise the version column shows `new X` when a newer release is out), per-GPU lists without spaces
+`--no-update-check` (otherwise the version column shows `need update!!` when a newer release is out), per-GPU lists without spaces
 (`--lock-cclock 1500,1400`). **Updating:** HiveOS caches archives by file name — use the new Installation URL of each release.
 
 **CMP cards (0.4.3):** under the stock NVIDIA driver a CMP card (CMP 50HX and the family) makes about a tenth of its speed.
@@ -90,7 +90,7 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 | Поле | Значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится сам из URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (или другой пул из таблицы) |
@@ -109,7 +109,7 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 
 **Ещё в Extra config arguments (0.4.2):** `--auto-lock` (майнер сам выбирает лок ядра по картам, сохраняется в
 `/hive-config/ffgv`), `--api 4078` с `/summary`, `/gpus`, `/metrics` (h-stats работает в любом случае), `--no-update-check`
-(иначе в колонке версии появится `new X`, когда выйдет новая версия), списки по картам без пробелов (`--lock-cclock 1500,1400`).
+(иначе в колонке версии появится `need update!!`, когда выйдет новая версия), списки по картам без пробелов (`--lock-cclock 1500,1400`).
 **Обновление:** HiveOS кэширует архивы по имени файла — берите новый Installation URL каждого релиза.
 
 **Карты CMP (0.4.3):** под штатным драйвером NVIDIA карта CMP (CMP 50HX и семейство) даёт около десятой части скорости.

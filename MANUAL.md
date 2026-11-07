@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.4 — user manual
+# FreeForGemVela (ffgv) 0.4.5 — user manual
 
 A step-by-step guide for people who have never mined VELA before. Русская версия — [MANUAL.ru.md](MANUAL.ru.md).
 
@@ -201,8 +201,8 @@ results on the RX 6800 XT (the miner checks them at every start), and every shar
 
 ## 5. Windows
 
-1. Download `ffgv-0.4.4-windows-x64.zip` and check its SHA256 against the release page
-   (PowerShell: `Get-FileHash .\ffgv-0.4.4-windows-x64.zip`).
+1. Download `ffgv-0.4.5-windows-x64.zip` and check its SHA256 against the release page
+   (PowerShell: `Get-FileHash .\ffgv-0.4.5-windows-x64.zip`).
 2. Unpack it to a folder **without spaces or non-English letters**, e.g. `C:\FreeForGemVela`.
 3. Right-click `start.bat` → **Edit** and set:
    - `WALLET` — **your** address. The example address in the file is the developer's; the script warns you if you keep it.
@@ -239,7 +239,7 @@ A ready flight sheet to paste with *Import from Clipboard* is in [HIVEOS.md](HIV
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically after the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | e.g. `stratum+ssl://vela.suprnova.cc:7604` — several separated by spaces = backups |
@@ -263,7 +263,7 @@ Notes:
 - If HiveOS applies its OC again while the miner runs (you change the OC in the web UI), the miner sets its own locks, the
   lifted memory lock and its power limit again within ~10 s. `miner stop` first lets the GPUs finish their batch, then puts
   the OC profile's values back.
-- The dashboard's version column shows the rig's efficiency (`0.4.3 0.3012 inf/s/W`) and `new 0.4.4` when a newer
+- The dashboard's version column shows the rig's efficiency (`0.4.3 0.3012 inf/s/W`) and `need update!!` when a newer
   release is out (the miner checks GitHub every ~12 h; `--no-update-check` in Extra config turns it off).
 - Lists in Extra config (per GPU) are written without spaces: `--lock-cclock 1500,1400`.
 
@@ -333,12 +333,12 @@ Two pools are live on VELA mainnet (velaresearch.ai/docs): AriaPool and suprnova
 
 | pool : port | protocol | share difficulty | checked |
 |---|---|---|---|
-| AriaPool `http://159.69.194.46:3349` | HTTP JSON-RPC | vardiff on the pool side (new worker starts at 8000) | yes, 0 rejected |
 | suprnova `stratum+tcp://vela.suprnova.cc:7601` | stratum | vardiff, starts at 2048 (aims at ~30 s per share) | yes, 0 rejected |
 | suprnova `stratum+tcp://vela.suprnova.cc:7602` | stratum | fixed 2048 | yes, 0 rejected |
 | suprnova `stratum+tcp://vela.suprnova.cc:7603` | stratum | fixed 16384 (for big rigs) | yes, 0 rejected |
 | suprnova `stratum+ssl://vela.suprnova.cc:7604` | stratum over TLS | vardiff, as 7601 | yes (Linux and Windows), 0 rejected |
 | solo, your node `http://USER:PASS@127.0.0.1:19732` | node RPC (getblocktemplate) | network difficulty | template and block assembly checked |
+| AriaPool `http://159.69.194.46:3349` | HTTP JSON-RPC | vardiff on the pool side (new worker starts at 8000) | yes, 0 rejected |
 
 **AriaPool** — https://pool.ariabrain.com/vela.html
 
@@ -372,8 +372,8 @@ ffgv --pool http://miner:A_LONG_RANDOM_PASSWORD@127.0.0.1:19732 --user vela1YOUR
 
 19732 is the mainnet RPC port. The block reward goes to the address in `--user`. Solo pays only when *you* find a block.
 
-HiveOS Pool URL for each: `http://159.69.194.46:3349`, `stratum+tcp://vela.suprnova.cc:7601`,
-`stratum+ssl://vela.suprnova.cc:7604`, `http://miner:PASSWORD@NODE_IP:19732` (with the node's `rpcbind`/`rpcallowip`
+HiveOS Pool URL for each: `stratum+ssl://vela.suprnova.cc:7604`, `stratum+tcp://vela.suprnova.cc:7601`,
+`http://159.69.194.46:3349`, `http://miner:PASSWORD@NODE_IP:19732` (with the node's `rpcbind`/`rpcallowip`
 opened to the rig's network).
 
 ## 9. Failover, start difficulty, API

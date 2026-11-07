@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.4
+# FreeForGemVela (ffgv) 0.4.5
 
 Native GPU miner for **VELA** (Proof-of-Inference, integer sd-turbo) on NVIDIA RTX 30 / 40 / 50 and, new in 0.4.4 (Windows first),
 AMD Radeon RX 6800 / 6800 XT / 6900 XT / 6950 XT (Navi 21, Windows). HiveOS and Windows packages. Dev fee **1%**. Русская версия — [README.ru.md](README.ru.md).
@@ -12,14 +12,14 @@ AMD Radeon RX 6800 / 6800 XT / 6900 XT / 6950 XT (Navi 21, Windows). HiveOS and 
 
 ## Download
 
-Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.4
+Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.5
 
 | package | file |
 |---|---|
-| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz |
-| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-0.4.4-linux-x86_64.tar.gz |
-| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-0.4.4-windows-x64.zip |
-| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/SHA256SUMS |
+| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz |
+| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-0.4.5-linux-x86_64.tar.gz |
+| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-0.4.5-windows-x64.zip |
+| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/SHA256SUMS |
 
 The miner binary is `ffgv` (`ffgv.exe` on Windows).
 
@@ -161,7 +161,7 @@ Miner **Custom** → Setup Miner Config:
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | see the pool examples below (several, space separated = failover) |
@@ -177,11 +177,11 @@ which costs VELA ~75% of its speed); `--lock-mclock` sets your own lock instead.
 If HiveOS applies its OC again while the miner runs (an OC change in the web UI), the miner sets its own locks, the lifted
 memory lock and its power limit again within ~10 s. `miner stop` first lets the GPUs finish their batch, then puts the OC
 profile's values back. The HiveOS dashboard reads speed, temperatures, fans, accepted/rejected shares from the miner's API
-(`h-stats.sh`, port 4078); the version column shows the rig's inf/s/W and `new X` when a newer release is out.
+(`h-stats.sh`, port 4078); the version column shows the rig's inf/s/W and `need update!!` when a newer release is out.
 
 ## Windows
 
-1. Unpack `ffgv-0.4.4-windows-x64.zip` to a folder without spaces, e.g. `C:\FreeForGemVela`.
+1. Unpack `ffgv-0.4.5-windows-x64.zip` to a folder without spaces, e.g. `C:\FreeForGemVela`.
 2. Right-click `start.bat` → Edit: set `WALLET` to **your** address (the example address is the developer's), `POOL`, `WORKER`,
    optionally `MODE=balance`.
 3. Run `start.bat` (as administrator if you use `MODE`, `AUTO_UV` or clock settings). The first start downloads the model
@@ -195,18 +195,18 @@ See `README-WINDOWS.txt` in the package for every field.
 ## Pools
 
 ```
-# AriaPool
-ffgv --pool http://159.69.194.46:3349 --user vela1YOURADDRESS.rig1
 # suprnova, stratum over TCP / over TLS (encrypted)
 ffgv --pool stratum+tcp://vela.suprnova.cc:7601 --user vela1YOURADDRESS.rig1
 ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --user vela1YOURADDRESS.rig1
 # solo through your own synced VELA node (RPC)
 ffgv --pool http://RPCUSER:RPCPASS@127.0.0.1:19732 --user vela1YOURADDRESS
+# AriaPool
+ffgv --pool http://159.69.194.46:3349 --user vela1YOURADDRESS.rig1
 # failover: the first pool is primary, the next ones are backups
 ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --pool http://159.69.194.46:3349 --user vela1YOURADDRESS.rig1 --mode balance
 ```
 
-HiveOS Pool URL for the same: `http://159.69.194.46:3349`, `stratum+tcp://vela.suprnova.cc:7601`, `stratum+ssl://vela.suprnova.cc:7604`,
+HiveOS Pool URL for the same: `stratum+ssl://vela.suprnova.cc:7604`, `stratum+tcp://vela.suprnova.cc:7601`, `http://159.69.194.46:3349`,
 `http://RPCUSER:RPCPASS@NODE_IP:19732`. suprnova also accepts `--suggest-diff D` (start share difficulty).
 
 ## Modes and auto-undervolt

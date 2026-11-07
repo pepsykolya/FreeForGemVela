@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.4 — руководство пользователя
+# FreeForGemVela (ffgv) 0.4.5 — руководство пользователя
 
 Пошаговое руководство для тех, кто ещё ни разу не майнил VELA. English — [MANUAL.md](MANUAL.md).
 
@@ -201,8 +201,8 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 
 ## 5. Windows
 
-1. Скачайте `ffgv-0.4.4-windows-x64.zip` и сверьте SHA256 со страницей релиза
-   (PowerShell: `Get-FileHash .\ffgv-0.4.4-windows-x64.zip`).
+1. Скачайте `ffgv-0.4.5-windows-x64.zip` и сверьте SHA256 со страницей релиза
+   (PowerShell: `Get-FileHash .\ffgv-0.4.5-windows-x64.zip`).
 2. Распакуйте в папку **без пробелов и русских букв**, например `C:\FreeForGemVela`.
 3. Правой кнопкой по `start.bat` → **Изменить** и задайте:
    - `WALLET` — **ваш** адрес. В файле для примера стоит адрес разработчика; скрипт предупредит, если его оставить.
@@ -239,7 +239,7 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 | поле | значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится сам после URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.4/ffgv-hive-0.4.4.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | например `stratum+ssl://vela.suprnova.cc:7604`; несколько через пробел — резервные |
@@ -263,7 +263,7 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 - Если HiveOS снова применит OC во время работы майнера (вы сменили OC в веб-панели), майнер за ~10 с вернёт свои локи,
   снятый лок памяти и свой лимит мощности. `miner stop` сначала даёт картам доделать батч, затем возвращает значения
   OC-профиля.
-- В колонке версии на панели — эффективность рига (`0.4.3 0.3012 inf/s/W`) и `new 0.4.4`, когда вышла новая версия
+- В колонке версии на панели — эффективность рига (`0.4.3 0.3012 inf/s/W`) и `need update!!`, когда вышла новая версия
   (майнер проверяет GitHub раз в ~12 ч; `--no-update-check` в Extra config выключает).
 - Списки по картам в Extra config пишутся без пробелов: `--lock-cclock 1500,1400`.
 
@@ -332,12 +332,12 @@ WantedBy=multi-user.target
 
 | пул : порт | протокол | сложность шары | проверено |
 |---|---|---|---|
-| AriaPool `http://159.69.194.46:3349` | HTTP JSON-RPC | vardiff на стороне пула (новый воркер начинает с 8000) | да, 0 отклонённых |
 | suprnova `stratum+tcp://vela.suprnova.cc:7601` | stratum | vardiff, старт 2048 (цель ~30 с на шару) | да, 0 отклонённых |
 | suprnova `stratum+tcp://vela.suprnova.cc:7602` | stratum | фиксированная 2048 | да, 0 отклонённых |
 | suprnova `stratum+tcp://vela.suprnova.cc:7603` | stratum | фиксированная 16384 (для больших ригов) | да, 0 отклонённых |
 | suprnova `stratum+ssl://vela.suprnova.cc:7604` | stratum по TLS | vardiff, как 7601 | да (Linux и Windows), 0 отклонённых |
 | соло, своя нода `http://USER:PASS@127.0.0.1:19732` | RPC ноды (getblocktemplate) | сетевая сложность | шаблон и сборка блока проверены |
+| AriaPool `http://159.69.194.46:3349` | HTTP JSON-RPC | vardiff на стороне пула (новый воркер начинает с 8000) | да, 0 отклонённых |
 
 **AriaPool** — https://pool.ariabrain.com/vela.html
 
@@ -371,8 +371,7 @@ ffgv --pool http://miner:ДЛИННЫЙ_СЛУЧАЙНЫЙ_ПАРОЛЬ@127.0.0.
 
 19732 — RPC-порт mainnet. Награда за блок идёт на адрес из `--user`. Соло платит, только когда блок нашли *вы*.
 
-Pool URL для HiveOS: `http://159.69.194.46:3349`, `stratum+tcp://vela.suprnova.cc:7601`,
-`stratum+ssl://vela.suprnova.cc:7604`, `http://miner:ПАРОЛЬ@IP_НОДЫ:19732` (в `rpcbind`/`rpcallowip` ноды нужно открыть сеть рига).
+Pool URL для HiveOS: `stratum+ssl://vela.suprnova.cc:7604`, `stratum+tcp://vela.suprnova.cc:7601`, `http://159.69.194.46:3349`, `http://miner:ПАРОЛЬ@IP_НОДЫ:19732` (в `rpcbind`/`rpcallowip` ноды нужно открыть сеть рига).
 
 ## 9. Резервные пулы, стартовая сложность, API
 
