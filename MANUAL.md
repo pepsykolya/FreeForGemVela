@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.5 — user manual
+# FreeForGemVela (ffgv) 0.4.6 — user manual
 
 A step-by-step guide for people who have never mined VELA before. Русская версия — [MANUAL.ru.md](MANUAL.ru.md).
 
@@ -131,6 +131,87 @@ RTX 3080 Ti: Windows 10, driver 591.59, the Windows package started with `start.
 7601 / 7604 and AriaPool; the same 3-minute API average (4–5 minutes for the points without auto-UV, 31.10.2026). The
 memory search of `speed` / `balance` found no gain on its GDDR6X and kept +0.
 
+### 4c. Batch size per card (0.4.6)
+
+`--batch 0` (the default) picks the batch of one lane per card: 8 on Ampere, 6 on Ada, 16 on a CMP 50HX with 10 GB, fewer on small cards. One exception
+is **measured and in a table** (`host/src/lanes.rs`, `BATCH_RULES`): the **RTX 3080 Ti** (12 GB, 80 SM, desktop) runs **batch 20** on one lane, which is +10.2% inf/s and
+2.4% less energy per inference than batch 8 (core lock 1470 MHz; two lanes add only +0.5% on this card, so it stays on one). It needs about 6.7 GB of VRAM (the
+miner 5.4 GB plus the desktop) and falls back to the usual batch 8 when less than 6.5 GB is free. Other large cards (3090, 3080, 4080, 4090) are NOT extrapolated: they keep the
+default until measured. `--batch N` always wins.
+
+### 4b. Lanes: two batches at once on one card (`--lanes`, `--lane-sync`, 0.4.6)
+
+A *lane* is one stream of batches on the GPU. A second lane fills the idle tail of every wave of the first one, so it helps cards that one batch does
+not fill completely. It costs VRAM (about 1.5-2.5 GB per extra lane), some host RAM (about 65 MB per extra lane on a HiveOS rig) and a little power, and a new job is
+picked up a little later (after one batch of every lane: about 0.2 s with 1 lane, 0.4 s with 2).
+
+- **`--lanes N`** — lanes per card. `0` (the default) = automatic, from a table of measured cards (`host/src/lanes.rs`: card name, SM, free VRAM, free
+  host RAM); `1` = one lane, as in 0.4.5; `2` = two lanes on any card (batch 8 per lane, 6 on RTX 40xx; `--batch N` sets the batch per lane). A
+  `--lanes N` you give always wins over the table. 3 lanes do not fit 8 GB.
+- **Switching the automatic lanes off: `--lanes 1`** (or `--no-lanes`, the same). The log then says `GPU0: lanes: 1 (--lanes 1)`.
+- **`--lane-sync auto|on|off`** — the launch barrier: the lanes of one card start every batch together. Without it, two lanes on some cards fall into
+  *antiphase* (the second lane starts half a batch after the first) and then both run as slowly as one lane; that state is sticky and lasts until the next
+  canary round moves the lanes (RTX 3070: 12-19% of the time, -5.5% while it lasts). On other cards the barrier costs a little. `auto` (the default) = on where
+  it was measured to help (the table below), off everywhere else, for the automatic lanes and for `--lanes N` alike; `on` = on for every card with 2 or more
+  lanes; `off` = never.
+
+| card | auto lanes | lane sync in `auto` | what was measured |
+|---|---|---|---|
+| RTX 3070 (desktop, 8 GB) | 2 x batch 8 (needs 6.6 GB VRAM free) | on | 2 lanes +5.4% inf/s offline, +5.3..+6.4% on the pool (two cards, 2 h and 6 h, auto-uv), J/inf -0.9..0%; VRAM 3.3 -> 5.9 GB. Without the barrier the lanes sat in antiphase 12-19% of the time, with it never (0 of 584 windows) |
+| RTX 3070 Laptop (8 GB) | 2 x batch 8 (needs 6.6 GB VRAM free at the start) | on | 30 minutes on the pool: 34.11 against 32.47 inf/s with 1 lane (**+5.1%**), J/inf -0.4%, no rejected shares, the lanes in phase all the time; an earlier run with auto-uv +4.9%, J/inf -1.0%. VRAM 3.1 -> 5.6 GB of 8. Without the barrier 2 lanes are exactly as fast as 1. With less VRAM free (an external display, a game, video in a browser) the card stays on 1 lane and the log says why. One laptop measured |
+| CMP 50HX (10 GB) | 2 x batch 8 (needs 7.5 GB VRAM and 900 MiB host RAM free) | off | 5 cards, HiveOS rig with 3.8 GB RAM, 3.3 h on the pool with auto-uv: 159.2 against 153.0 inf/s of the 0.4.5 default 1 x batch 16 (**+4.05%**, per card +2.9..+4.7%; one card alone +3.4%), J/inf -1.2%, VRAM 4.3 -> 5.4 GB per card, lowest free RAM of the rig 1559 -> 1238 MiB. The barrier: -1.5% (on this card the phase it forces is ~1% slower). One rig measured: see the note under "Warnings" |
+| RTX 4070 Ti (12 GB) | 2 x batch 6 (needs 7 GB VRAM free) | off | ABBA on the pool with auto-uv, 4 pairs: 2 x batch 6 +2.37% inf/s against 1 x batch 6 (one pair +1.86%), J/inf +1.78% (a little more energy per inference), the barrier is neutral (+-0.1%). At the very edge of the undervolt (core +300 / +330) a second lane once gave an Xid 31 / a hang in a test: auto-uv steps back, `--lanes 1` (or `--no-lanes`) switches it off. A card shared with an LLM (little VRAM free) stays on 1 lane |
+| RTX 3080 Ti | 1 x batch 20 (see 4c) | off | 2 x batch 8 only +0.5% (the card runs the two lanes one after the other), the barrier -0.7%; batch 20 on one lane is +10% |
+| AMD Radeon | 1 lane | off | `--lanes 2` works (bit-exact, canary 56/56 on both lanes) but is 0.4% slower |
+| any other card | 1 lane | off | not measured: try `--lanes 2` (and `--lane-sync on` / `off`) against `--lanes 1` with `--bench` or on the pool, then decide |
+
+The log says what was chosen and why: `GPU0: lanes auto: 2 lanes (...)` / `lanes auto: 1 lane (why)`, then `GPU0: lane sync: on (RTX 3070: antiphase measured, ...)`
+or `lane sync: off (CMP 50HX: phase 0 is ~1% slower here, ...)`. The API (`/gpus`, `/summary`) shows per GPU `lanes` (lanes mining now, 0 = the worker is not
+mining), `lane_stops` (extra lanes that did not start or stopped on their own), `lane_hangs` (of those, lanes stopped because a GPU call did not return),
+`lane_integrity_errors` (INTEGRITY errors seen by the extra lanes; those of lane 0 stay in `integrity_errors`) and `job_latency_ms` (`n`, `avg`, `max`: how
+long the lanes needed to notice a new job).
+
+**Where to put it.** Windows: `set "EXTRA=--lanes 2"` (or `--lanes 1`) in `start.bat`. HiveOS: the flag in *Extra config arguments* of the flight sheet, e.g.
+`--mode balance --lanes 1`. Do not edit `wallet.conf` on the rig for that: HiveOS writes it again from the flight sheet at every reboot and every flight sheet
+push, so the flag would be gone. A new or copied flight sheet needs the flag again.
+
+**Warnings.**
+- VRAM: each extra lane takes about 1.5-2.5 GB more. With `--lanes N` given by hand there is no memory guard besides a warning at the start; if the lane
+  runs out of memory later, it stops alone and the GPU mines on with fewer lanes.
+- Host RAM on rigs with many GPUs and little memory (HiveOS, 4 GB for 5 cards): the automatic second lane of a CMP 50HX is not started with less than
+  900 MiB available (a WARNING in the log, the card stays on 1 lane). At the start, while other cards still load the model, the card waits up to 180 s for
+  the memory (`waiting for free RAM before starting the second lane ...` and the result in the log); it does not mine during that wait. With `--lanes 2` by hand
+  the miner only warns below 900 MiB and starts the lanes as asked: watch `free -m` yourself.
+- **CMP 50HX: the numbers are from one rig.** While that rig was being tested it rebooted twice by itself (a hard reset, cause not found), both times while a
+  separate test process ran two lanes on one card; the miner itself ran for hours on 2 lanes on all five cards without trouble. If your rig starts to reboot
+  with 0.4.6, put `--lanes 1` into Extra config and please tell us.
+- **0.4.5 and older: do not use `--lanes 2`.** There the second lane is an incomplete copy of the engine: it runs on slower fallback kernels (RTX 30xx / 40xx)
+  and fails its self-test with a MISMATCH on Turing (CMP 50HX). The advice above is for 0.4.6. If HiveOS installs an older package (an old Installation URL),
+  take `--lanes 2` out of Extra config.
+
+**A second lane never stops a GPU from mining**, with automatic lanes and with `--lanes N` alike. An extra lane is started after the first one passed the
+self-test; it passes the test vector and the whole 56-case canary itself, and it is compared with lane 0: every state field of the engine that is not the
+lane's own, and the kernels of a pass of 1, an odd number and the work batch (which tiles and fallbacks are used). If the memory is not there, or any of these
+checks fails, or the lane runs out of memory later, the miner logs a WARNING with the reason (an `INTEGRITY` refusal names the field or the path), `lane_stops`
+counts it, and the GPU mines on with the lanes that passed (no second try on that card in this process). If the card then has a single lane and one lane gets a
+bigger batch by default (CMP 50HX: 16 instead of 8, RTX 3080 Ti: 20 instead of 8) and no `--batch` is given, the miner opens the card again with 1 lane at
+that batch, so that it runs as fast as with 0.4.5 (the model is loaded once more: a few seconds, longer on a rig with little RAM).
+An extra lane that sees 3 INTEGRITY errors stops alone. Its INTEGRITY errors also count for the auto-undervolt (the lanes share the clocks): they
+fail the step being tuned and, while mining on a tuned offset, step it back by 30 MHz, like an error of lane 0, but never stop the GPU (on a fixed `--uv-offset`
+or at the lowest offset the canary of lane 0 decides alone).
+
+An extra lane whose GPU call does not return (stuck in the driver) is stopped alone: a call that lasts longer than `--lane-hang-secs S` (default 30, 0 = off, else
+at least 10) or 20 times the median pass time of that lane, whichever is more (at most 5 minutes unless S is higher), gives `WARNING lane N HUNG: ...`, `lane_stops` /
+`lane_hangs` count it, and lane 0 mines on. The stuck thread is left alone and not waited for (a stop of the miner does not wait for it either); the miner then ends
+through the hard exit and a restart of the worker becomes a restart of the miner (exit code 3, HiveOS / `start.bat` start it again), so that the GPU memory comes
+back. A sleep or hibernation of the computer is not taken for a hang. Lane 0 is watched by `--watchdog-hang` (40 s) as before.
+
+Debug switches that keep process-wide state (`VG_PERSIST`, `VG_SKR`, `VG_GNSLOT`, `VG_ATDUMP`, `VG_SYNC=3`) must not be combined with `--lanes` above 1. `VG_LANE_PRIO=1` gives the first lane a higher stream priority again (the default is equal priorities).
+
+**An out-of-memory is not the card's fault.** A worker that dies of a CUDA out-of-memory (another program took the card's memory, a lane did not fit) is no
+longer counted as a GPU fault: no crash record, no lower undervolt offset at the next start, no one-hour exclusion of the card. The miner logs a WARNING; when every
+GPU died that way it waits 60 s before it exits (HiveOS / start.ps1 restart it), so there is no hot restart loop.
+
 ### 4a. AMD Radeon (new in 0.4.4)
 
 The same miner, the same pools and the same consensus check run on AMD Radeon cards through a second GPU engine, `velagpu_amd.dll`
@@ -201,8 +282,8 @@ results on the RX 6800 XT (the miner checks them at every start), and every shar
 
 ## 5. Windows
 
-1. Download `ffgv-0.4.5-windows-x64.zip` and check its SHA256 against the release page
-   (PowerShell: `Get-FileHash .\ffgv-0.4.5-windows-x64.zip`).
+1. Download `ffgv-0.4.6-windows-x64.zip` and check its SHA256 against the release page
+   (PowerShell: `Get-FileHash .\ffgv-0.4.6-windows-x64.zip`).
 2. Unpack it to a folder **without spaces or non-English letters**, e.g. `C:\FreeForGemVela`.
 3. Right-click `start.bat` → **Edit** and set:
    - `WALLET` — **your** address. The example address in the file is the developer's; the script warns you if you keep it.
@@ -239,7 +320,7 @@ A ready flight sheet to paste with *Import from Clipboard* is in [HIVEOS.md](HIV
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically after the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-hive-0.4.6.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | e.g. `stratum+ssl://vela.suprnova.cc:7604` — several separated by spaces = backups |
@@ -266,6 +347,10 @@ Notes:
 - The dashboard's version column shows the rig's efficiency (`0.4.3 0.3012 inf/s/W`) and `need update!!` when a newer
   release is out (the miner checks GitHub every ~12 h; `--no-update-check` in Extra config turns it off).
 - Lists in Extra config (per GPU) are written without spaces: `--lock-cclock 1500,1400`.
+- Lanes (0.4.6, §4b): the automatic choice already gives 2 lanes to a CMP 50HX, an RTX 3070 and an RTX 4070 Ti; `--lanes 1` switches that off. `--lanes 1` / `--lanes 2` /
+  `--lane-sync on` go into Extra config of the flight sheet (e.g. `--mode balance --lanes 1`), not into `wallet.conf` on the rig (HiveOS writes that file again
+  at every reboot and flight sheet push). A new flight sheet needs the flag again. Do not keep `--lanes 2` with an Installation URL of 0.4.5 or older. If a
+  CMP 50HX rig starts to reboot by itself with 0.4.6, try `--lanes 1` (§4b, "Warnings").
 
 ### CMP cards: the unlock driver (0.4.3)
 
@@ -293,8 +378,8 @@ driver version with `nvidia-driver-update` and reboot. The speed table and the C
 ## 7. Linux without HiveOS
 
 ```
-tar xzf ffgv-0.4.1-linux-x86_64.tar.gz
-cd ffgv-0.4.1
+tar xzf ffgv-0.4.6-linux-x86_64.tar.gz
+cd ffgv-0.4.6
 ./ffgv --selftest                # engine check: test vector + 56 consensus canaries; the first start downloads the model (1.19 GB,
                                  # sha256 checked) next to ffgv when it is not there (by hand: wget the Hugging Face link, sha256sum ba38ab96...1f36)
 sudo CUDA_DEVICE_ORDER=PCI_BUS_ID ./ffgv --pool stratum+ssl://vela.suprnova.cc:7604 \
@@ -313,9 +398,9 @@ Description=FreeForGemVela
 After=network-online.target
 
 [Service]
-WorkingDirectory=/opt/ffgv-0.4.1
+WorkingDirectory=/opt/ffgv-0.4.6
 Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
-ExecStart=/opt/ffgv-0.4.1/ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --pool http://159.69.194.46:3349 --user vela1YOURADDRESS.rig1 --model /opt/ffgv-0.4.1/sd-turbo-int.poisd --mode balance --api-port 4078 --no-color
+ExecStart=/opt/ffgv-0.4.6/ffgv --pool stratum+ssl://vela.suprnova.cc:7604 --pool http://159.69.194.46:3349 --user vela1YOURADDRESS.rig1 --model /opt/ffgv-0.4.6/sd-turbo-int.poisd --mode balance --api-port 4078 --no-color
 Restart=always
 RestartSec=15
 
@@ -399,13 +484,13 @@ in it, only GET / HEAD, no CORS:
 
 - `/summary` — version, uptime, pool (url, index in the list, connected, height, share difficulty, failback state),
   wallet / worker, inf/s, W, inf/s per W, shares, dev fee;
-- `/gpus` — per GPU: state (`mining`, `auto-uv`, `restarting`, `stopped`), inf/s, W, temperature, fan, clocks, offsets,
+- `/gpus` — per GPU: state (`mining`, `auto-uv`, `restarting`, `stopped`), inf/s, `lanes`, `lane_stops`, `lane_hangs`, `lane_integrity_errors`, `job_latency_ms`, W, temperature, fan, clocks, offsets,
   `auto_uv`, `auto_lock`, `temp_limit`, `watchdog`, `throttle`, errors, shares;
 - `/metrics` — Prometheus text (`ffgv_hashrate_infs`, `ffgv_gpu_hashrate_infs{gpu,bus,name}`, `ffgv_gpu_power_watts`, ...);
 - `/` — the JSON that HiveOS h-stats reads (unchanged since 0.3):
 
 ```
-{"version":"0.4.1","engine":"vg-...","uptime":1193,"mode":"balance","pool":"http://159.69.194.46:3349",
+{"version":"0.4.6","engine":"vg-...","uptime":1193,"mode":"balance","pool":"http://159.69.194.46:3349",
  "difficulty":4151.3,"total_inf_s":34.93,"accepted":2,"rejected":0,"stale":0,
  "gpus":[{"gpu":0,"bus":"0000:08:00.0","name":"NVIDIA GeForce RTX 3070","inf_s":34.93,"attempts":41208,"found":2,
           "accepted":2,"rejected":0,"integrity_errors":0,"canary_errors":0,"alive":true,"error":null,
@@ -545,7 +630,7 @@ lock or the power limit, the miner sets its own again within ~10 s (at most 4 ti
 | `WALLET is still the developer address` | Put your own `vela1...` address into `start.bat`. |
 | `WALLET does not look like a VELA address` | Use the full lower-case `vela1...` address, no spaces. |
 | CUDA error at start, `driver version is insufficient` | Update the NVIDIA driver (R525+, RTX 50: R570+). |
-| out of memory | 6 GB VRAM is the minimum; close other GPU programs or try `--batch 4`. |
+| out of memory | 6 GB VRAM is the minimum; close other GPU programs or try `--batch 4` (and `--lanes 1`). |
 | `--mode` / undervolt does nothing, "permission" messages | Run as administrator (Windows) or with `sudo` (Linux). |
 | canary `BAD` keeps repeating, GPU stopped | A manual overclock or HiveOS core offset is too high. Remove it, or let `--mode` / `--auto-uv` manage the core; `--uv-reset` to re-tune. |
 | `HUNG` and a restart | Memory or core pushed too far; the miner already lowered it. If it repeats, use `eco` or `--uv-reset`. |

@@ -21,7 +21,7 @@ Several URLs separated by spaces = failover (the first is the primary).
 2. **Flight Sheets** → **Import from Clipboard** and paste:
 
 ```json
-{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
+{"name":"ffgv VELA suprnova","isFavorite":false,"items":[{"coin":"VELA","pool_ssl":false,"pool_urls":["stratum+ssl://vela.suprnova.cc:7604"],"dpool_ssl":false,"miner":"custom","miner_alt":"ffgv-hive","miner_config":{"url":"stratum+ssl://vela.suprnova.cc:7604 http://159.69.194.46:3349","algo":"vela","pass":"x","miner":"ffgv-hive","template":"%WAL%.%WORKER_NAME%","install_url":"https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-hive-0.4.6.tar.gz","user_config":"--mode balance"},"pool_geo":[]}]}
 ```
 
 3. Pick your `VELA` wallet in the red-marked field (the import carries no wallet), **Create flight sheet**, apply it to the rig.
@@ -35,7 +35,7 @@ Coin `VELA`, Wallet: yours, Pool: *Configure in miner*, Miner: **Custom** → *S
 | Field | Value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in automatically from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-hive-0.4.6.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (or another pool from the table) |
@@ -56,6 +56,14 @@ GPUs finish their batch, then puts the profile's values back. Details: MANUAL §
 `/hive-config/ffgv`), `--api 4078` with `/summary`, `/gpus`, `/metrics` (h-stats keeps working either way),
 `--no-update-check` (otherwise the version column shows `need update!!` when a newer release is out), per-GPU lists without spaces
 (`--lock-cclock 1500,1400`). **Updating:** HiveOS caches archives by file name — use the new Installation URL of each release.
+
+**Lanes (0.4.6):** a CMP 50HX, an RTX 3070 and an RTX 4070 Ti get 2 lanes by themselves (CMP 50HX: +3.4..+4% measured on one 5-card rig, if at least 900 MiB of the
+rig's RAM is free; otherwise the card stays on 1 lane and the log says why). **To switch that off, put `--lanes 1` into Extra config arguments**, e.g.
+`--mode balance --lanes 1`; the same field takes `--lanes 2` for other cards and `--lane-sync on|off`. Do not edit `wallet.conf` on the rig for it: HiveOS
+writes that file again from the flight sheet at every reboot and every flight sheet push. A new or copied flight sheet needs the flag again. Each extra lane
+takes 1.5-2.5 GB of VRAM; `--lanes 2` with a 0.4.5 package is slower, not faster (the second lane of 0.4.5 is an incomplete copy). The CMP numbers come from
+one rig, which rebooted by itself twice while separate test processes ran two lanes on one card (cause not found; the miner on 2 lanes ran for hours without
+trouble): if your rig starts to reboot with 0.4.6, add `--lanes 1` and tell us. Table and numbers: MANUAL §4b.
 
 **CMP cards (0.4.3):** under the stock NVIDIA driver a CMP card (CMP 50HX and the family) makes about a tenth of its speed.
 To let the miner install the CMP unlock driver, add `--cmp-unlock-driver` to Extra config arguments (the miner does not
@@ -90,7 +98,7 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 | Поле | Значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится сам из URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-hive-0.4.6.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | `stratum+ssl://vela.suprnova.cc:7604` (или другой пул из таблицы) |
@@ -111,6 +119,15 @@ Coin `VELA`, Wallet: ваш, Pool: *Configure in miner*, Miner: **Custom** → *
 `/hive-config/ffgv`), `--api 4078` с `/summary`, `/gpus`, `/metrics` (h-stats работает в любом случае), `--no-update-check`
 (иначе в колонке версии появится `need update!!`, когда выйдет новая версия), списки по картам без пробелов (`--lock-cclock 1500,1400`).
 **Обновление:** HiveOS кэширует архивы по имени файла — берите новый Installation URL каждого релиза.
+
+**Лейны (0.4.6):** CMP 50HX, RTX 3070 и RTX 4070 Ti получают 2 лейны сами (CMP 50HX: +3.4..+4% по замерам на одном риге из 5 карт, если свободно не меньше
+900 МиБ ОЗУ рига; иначе карта остаётся на одной лейне, причина — в логе). **Чтобы это выключить, впишите `--lanes 1` в Extra config arguments**, например
+`--mode balance --lanes 1`; в то же поле вписываются `--lanes 2` для других карт и `--lane-sync on|off` (синхронный запуск лейн). Не правьте ради этого
+`wallet.conf` на риге: HiveOS перезаписывает его из полётного листа при каждой перезагрузке и каждый раз, когда лист применяется заново. В новый или
+скопированный полётный лист флаг нужно вписать заново. Каждая дополнительная лейна занимает 1.5-2.5 ГБ видеопамяти; с пакетом 0.4.5 `--lanes 2` работает
+медленнее, а не быстрее (вторая лейна в 0.4.5 — неполная копия движка). Цифры по CMP получены на одном риге, который дважды сам перезагрузился, когда
+отдельные тестовые процессы гоняли две лейны на одной карте (причина не установлена; сам майнер на двух лейнах часами работал без сбоев): если с 0.4.6
+ваш риг начнёт перезагружаться, добавьте `--lanes 1` и сообщите нам. Таблица и цифры: MANUAL §4б.
 
 **Карты CMP (0.4.3):** под штатным драйвером NVIDIA карта CMP (CMP 50HX и семейство) даёт около десятой части скорости.
 Чтобы майнер сам поставил драйвер-разблокировку CMP, добавьте `--cmp-unlock-driver` в Extra config arguments (майнеру оно

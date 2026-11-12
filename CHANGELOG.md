@@ -6,6 +6,112 @@ byte for byte equal to the VELA node's own CPU code). Each engine round was meas
 before it on the same cards, so the steps below are exact; the series of different rounds used slightly different
 bench scripts (±1%).
 
+## 0.4.6 — 2026-11-12
+
+Two lanes where they pay off, a larger batch on the RTX 3080 Ti, a full fix of the second lane of the engine, and the guards around it. The math of the
+kernels is that of 0.4.5 except conv_out (bit-exact: test vector, canary 56/56 on every lane, 40 seeds against the node's CPU code); the AMD engine is
+byte for byte that of 0.4.4 / 0.4.5. What it gives, measured on the miner's own inf/s (API / log), not on pool hashrate:
+
+| card | 0.4.5 default | 0.4.6 default | change |
+|---|---|---|---|
+| RTX 3070 (desktop) | 1 lane x batch 8 | 2 lanes x batch 8, lane sync on | **+5.4%** offline, +5.3..+6.4% on the pool (2 h and 6 h), J/inf -0.9..0% |
+| RTX 3070 Laptop | 1 lane x batch 8 | 2 lanes x batch 8, lane sync on | **+5.1%** on the pool (30 min), J/inf -0.4% (one laptop) |
+| CMP 50HX | 1 lane x batch 16 | 2 lanes x batch 8 | **+4.05%** on a 5-card HiveOS rig (3.3 h on the pool), J/inf -1.2% (one rig, see the notes) |
+| RTX 3080 Ti | 1 lane x batch 8 | 1 lane x batch 20 | **+10.2%** on the pool (3 h 20 min ABBA), J/inf -3.8% |
+| every card (conv_out) | | | +0.3% (RTX 3070, 4070 Ti; not on sm_75) |
+| RTX 4070 Ti | 1 lane x batch 6 | 2 lanes x batch 6, lane sync off | **+2.37%** on the pool (ABBA, 4 pairs), J/inf +1.78% (worse), see the notes |
+| other laptops, AMD, others | | unchanged (1 lane) | `--lanes 2` by hand, see below |
+
+- **Two lanes by default on the RTX 3070 (desktop and laptop), the RTX 4070 Ti and the CMP 50HX** (`--lanes 0`, the default). A lane is one stream of batches on the GPU; the
+  second one fills the idle tails of the waves of the first. The choice is a table of measured cards (`host/src/lanes.rs`: card name, SM, free VRAM, free host
+  RAM): RTX 3070 2 x batch 8 with 6.6 GB VRAM free (+5.4%, VRAM 3.3 -> 5.9 GB); RTX 3070 Laptop 2 x batch 8 with 6.6 GB VRAM free at the start (+5.1% on the
+  pool, J/inf -0.4%, VRAM 3.1 -> 5.6 GB of 8; with an external display or another program on the card it stays on 1 lane); CMP 50HX 2 x batch 8 with 7.5 GB
+  VRAM and 900 MiB host RAM free (+4.05% against 1 x batch 16 on 5 cards, VRAM 4.3 -> 5.4 GB per card; the rig's lowest free RAM went 1559 -> 1238 MiB, so
+  below 900 MiB the second lane is not started and a WARNING says why; at the start a card waits up to 180 s, logged, for the other cards' model loads to
+  give the memory back). RTX 4070 Ti 2 x batch 6 with 7 GB VRAM free (+2.37% inf/s against 1 x batch 6, ABBA on the pool with auto-uv, but J/inf +1.78%: a small gain that costs a little energy per inference; a card whose VRAM is shared with an LLM stays on 1 lane). One lane stays on: RTX 3080 Ti (+0.5%, batch 20 instead, next item), other
+  laptops, AMD and every card not in the table. **`--lanes N` always wins**: `--lanes 1` (or `--no-lanes`) switches the lanes off and gives the behaviour
+  of 0.4.5 (`GPU0: lanes: 1 (--lanes 1)` in the log), `--lanes 2` = two lanes on any card; both also in HiveOS Extra config and in `start.bat` EXTRA. With
+  `--lanes 2` by hand on a CMP 50HX the miner only warns when less than 900 MiB of RAM is free. The log shows the decision (`GPU0: lanes auto: 2 lanes (...)` / `auto: 1 lane (why)`); `lanes`, `lane_stops`, `lane_hangs`,
+  `lane_integrity_errors` and `job_latency_ms` are in the API per GPU. `--lanes 2` without `--batch` uses batch 8 per lane (6 on Ada). Do not use
+  `--lanes 2` with 0.4.5: its second lane is the incomplete copy fixed below.
+- **Lane sync (`--lane-sync auto|on|off`).** Two lanes of an RTX 3070 can fall into antiphase (the second lane starts half a batch after the first); then both run
+  as slowly as one lane, and that state lasted until the next canary round moved them: 12-19% of the time on the pool, -5.5% while it lasted (one cause of the
+  "phases at the speed of one lane" seen in testing). The lanes of a card now start every batch together (a barrier with at most 500 ms wait; a lane back from a
+  canary round rejoins; a lane that stops is not waited for): without it 9.6-47% of 5-second windows in antiphase under frequent canary rounds, with it 0 of 584.
+  The barrier does not help every card, so `auto` (the default) uses a table of measured cards, for automatic lanes and for `--lanes N` by hand: on for the RTX 3070
+  and the RTX 3070 Laptop (there 2 lanes without it are exactly as fast as 1); off for the CMP 50HX (the phase it forces is ~1% slower there: -1.5%), the RTX 3080 Ti
+  (it runs two lanes one after the other anyway: -0.7%), the RTX 4070 Ti (neutral) and every card not measured. `on` = every card with 2+ lanes, `off` = never. The log
+  names the decision and the reason (`GPU0: lane sync: on (RTX 3070: antiphase measured, ...)`). Only the moment a batch is launched changes, never what is computed.
+- **RTX 3080 Ti: automatic batch 20 on one lane** (was 8). Measured on a 3080 Ti (80 SM, core lock 1470 MHz, memory 9251 MHz): offline batch 8 58.91 inf/s, batch 16
+  62.75, **batch 20 64.88 (+10.2%, J/inf -2.4%)**, batch 32 65.00 (needs 8.7 GB); on the pool with auto-uv 58.51 -> 64.51 inf/s (+10.2%, J/inf -3.8%, 0 rejected).
+  Batch 20 takes about 6.7 GB of the card (the miner 5.4 GB plus the desktop); with less than 6.5 GB free the usual batch 8 is used. A table in `host/src/lanes.rs`
+  (`BATCH_RULES`) holds the rule; only this card is in it: the RTX 3090, 3080, 4080, 4090 and every other card keep their default batch until somebody measures them
+  (a bigger batch was no gain on the 3070 and the 4070 Ti). `--batch N` always wins. A new job is picked up after one batch (about 0.3 s instead of 0.15 s).
+- **Engine: the second lane was not a full copy.** The clone of an engine (`vg_clone`) did not take over six fields derived from the model file: the second lane ran
+  on slower fallback kernels on sm_80+ (it lost 5% on a 3080 Ti) and on sm_75 (CMP 50HX) it failed the self-test
+  with a MISMATCH. Fixed. A lane that fails to start gives its memory back. Lanes of one card run at equal stream priority (the low-priority lane starved: 61 / 14
+  passes against 37 / 38); `VG_LANE_PRIO=1` restores the old priorities.
+- **The clone check is complete.** Before a lane mines, `vg_clone_check` compares EVERY data member of the engine that is not private to a lane (112 of 151, the other 39
+  are the lane's own; a list in the engine source), including the weight maps entry by entry; a build test fails when a member is added to the engine without a class
+  in that list. Besides that the miner compares the kernel path of a pass of 1, an odd number and the work batch on both engines (`vg_kernel_path`: the pass is captured
+  into a CUDA graph that is thrown away unrun, its kernels / grids / blocks / shared memory are hashed; 6-17 ms). Every extra lane also passes the test vector and the
+  whole 56-case consensus canary. Any difference is an INTEGRITY refusal of that lane (`lane kernel path = lane 0's` in the log otherwise).
+- **A second lane never stops a GPU from mining**, with automatic lanes and with `--lanes N` by hand. It is started only after the first lane passed the self-test
+  and ran all its graphs; it needs the VRAM read live from the driver (and host RAM where the table asks for it in auto). If any check fails (self-test, canary,
+  clone check, kernel path, memory), or the lane runs out of memory while mining, a WARNING with the reason is logged, `lane_stops` counts it and the GPU mines on
+  with the lanes that passed (not tried again in this process). When that leaves one lane and one lane has a bigger default batch (CMP 50HX 16, RTX 3080 Ti 20)
+  and no `--batch` is given, the card is opened again with 1 lane at that batch (one more model load), so it is not slower than 0.4.5. An extra lane that sees
+  3 INTEGRITY errors stops alone.
+- **Hang detector for the extra lanes (`--lane-hang-secs`).** An extra lane whose GPU call (a pass, the integrity re-run, a new prompt) does not return for
+  `max(30 s, 20 x the median pass time of that lane)` (at most 5 min unless the flag is higher; `--lane-hang-secs S`, 0 = off, else at least 10) is
+  stopped ALONE: a WARNING in the log, `lane_stops` and `lane_hangs` in the API, `lanes` one less, no second lane again in this process; lane 0 and the
+  other lanes mine on. Nobody waits for the stuck thread: the stop of the miner does not wait for it, the weights it shares are not freed under it, a worker
+  restart becomes a restart of the whole miner (exit 3, settings put back first), and the process ends by the hard exit. The timer is on the host side (two atomic
+  stores per pass, a monitor thread twice a second; nothing added to the engine's wait); a suspended machine gives no verdict. Lane 0 keeps the old rule:
+  `--watchdog-hang` (40 s), the miner restarts.
+- **Auto-undervolt sees the INTEGRITY errors of the extra lanes.** The lanes of a card share its clocks and voltage, but only lane 0's errors reached the tuner: on an
+  RTX 4070 Ti an error of lane 1 at the offset being tried did not fail that step, and the profile was saved there (one step below an Xid). Now an error of any lane
+  runs a canary round at once and fails the step being tuned (search, check, confirmation, memory search); while mining on a tuned offset it steps back 30 MHz, as
+  an error of lane 0 does. It never stops the GPU and is no crash record: on a fixed `--uv-offset` or at the lowest offset lane 0's canary decides alone, and the
+  clone stops itself after 3 errors (the reason the clone's errors had been kept away from the tuner in testing: a broken clone must not take the GPU down).
+- **An out-of-memory is nobody's fault.** A worker that dies of a CUDA out-of-memory (another program took the card's memory, a lane did not fit) is no
+  longer a "GPU fault": no crash record, no lower undervolt offset at the next start, no one-hour exclusion of the GPU. The miner logs a WARNING;
+  when every GPU died that way it waits 60 s before it exits (HiveOS / start.ps1 restart it), so there is no hot restart loop. The API shows `lanes` 0
+  while a worker is not mining.
+- **Hard-fork / model-change monitor.** The VELA docs announce an early hard fork (model registry, model slot and cost exponent in the block
+  header, payload v3); no mainnet height is published (checked 10.11.2026). This miner builds a 112-byte header and PoI v2 for one model; after a
+  fork it would have computed for nothing until the 15-minute no-share watchdog. Now: a node (solo) is asked every 10 min (every minute when a switch
+  is scheduled) for `getpoiinfo` (schedule, `model_switch_height`, `next_version`, `difficulty_multiplier`, loaded models), its tip header size and
+  version; every template (node / AriaPool) and every stratum subscribe / notify is checked for the PoI version, model hash, `x0_size`, `vocab_size`
+  and for fields this miner does not know. A scheduled switch gives a warning every 10 min with the block count; when the block being mined needs another
+  version / model / header, mining is PAUSED (GPUs idle, no 15-minute blind run) with a message that names the reason and the release page, and it resumes
+  by itself if the check passes again. `fork` in the API (`/summary`, `/`: state ok / notice / warning / paused, `need_update`, next activation,
+  messages), `ffgv_fork_state` in `/metrics`, `fork-alert` file next to the miner (HiveOS shows `FORK: UPDATE MINER (paused)!!` / `FORK soon: update!!`).
+  With several pools a pool that needs a newer miner is left like a failing one.
+- **Adaptive canary period.** The consensus canary round (8 cases, ~0.54 s on an RTX 3070, measured) ran every 120 s = 0.45% of the time. While every round is
+  clean and the offsets / lock / power knobs stay as they are, the period grows 120 s (10 rounds) -> 240 s -> 480 s -> 600 s; a failed round or INTEGRITY
+  ERROR, any tuning phase, a changed setting (pulled forward to 5 s) or a card that warmed up by 6 degrees starts over at 120 s. `--canary-max S` (600; 0 = the
+  old fixed period). The first rounds and every 30th are logged with their duration. `--bench` now also prints the canary round time.
+- **Stratum: a share leaves within 25 ms** (the socket read timeout was 250 ms; shares were sent only after it expired: 50-236 ms measured with a mock pool, now below 30 ms).
+- **RPC pools: tip poll every 1 s on a public pool** (was 2 s; a local node stays at 0.5 s), `--poll-ms MS` sets it (0.5 s possible).
+- Engine: conv_out (N = 4) on the 64 x 64 tile instead of 64 x 320 (`VG_COUT64=0` = old), +0.3% on the 3070 and the 4070 Ti, bit-exact (test vector,
+  40 seeds, canary); not on sm_75. Engine tag v0.1s5.
+- Nonce ranges are reserved per possible lane, so GPUs of one rig with different lane counts never search the same nonces.
+
+Honest notes:
+- The CMP 50HX numbers are from one rig (5 cards, 3.3 h), the RTX 3080 Ti numbers from one card and one day, the 3070 numbers from two cards of one machine,
+  the RTX 3070 Laptop numbers from one laptop (15-30-minute pool runs); the lane sync results come from 15-30-minute pool runs per card with canary rounds every
+  20 s (a stress test). Your card may differ: `--lanes 1` / `--lanes 2` and `--lane-sync on|off` let you compare.
+- The CMP 50HX rig that was measured rebooted by itself twice during the tests (a hard reset, cause not found), both times while a separate test process ran
+  two lanes on one card; the miner itself ran on 2 lanes on all five cards for hours without trouble. If your rig starts to reboot with 0.4.6, add `--lanes 1`
+  (HiveOS: Extra config) and tell us.
+- Two lanes cost VRAM (1.5-2.5 GB per lane) and pick up a new job about 0.2 s later; with `--lanes N` given by hand there is no memory guard besides a warning
+  (an out-of-memory then stops that lane alone).
+- A clone that hangs while it is being started (self-test / canary / kernel path, before it mines) is not covered by the lane hang detector; the open watchdog of
+  the card handles it as before (warnings, the miner ends after an hour).
+- With 1 lane the nonce range of a GPU is half that of 0.4.5 (a slot is kept for a second lane): harmless, a job never comes near its end at tens of inferences per second.
+- RTX 4070 Ti on 2 lanes: the gain is small (+2.37%, one pair only +1.86%) and J/inf is +1.78% worse. At the very edge of the undervolt (core offset +300 / +330 MHz) a second lane once ended with an Xid 31 / a hang in a test; auto-uv steps back on a lane error and the lane hang detector stops a stuck lane alone, but if you see `lane_stops` or Xid messages on this card put `--lanes 1` (or `--no-lanes`) into the arguments.
+
 ## 0.4.5 — 2026-11-07
 
 - **New-version notice in HiveOS now reads `need update!!`** (owner's decision 06.11.2026, for all our miners): the version column shows

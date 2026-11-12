@@ -24,6 +24,11 @@ else
   _ver=${_ver% }
   _new=; [[ -f $_ffgv_dir/update-available ]] && _new=$(tr -cd '0-9A-Za-z.' < "$_ffgv_dir/update-available" | head -c 20)
   [[ -n $_new ]] && _ver="$_ver, need update!!"
+  # the hard-fork monitor (fork.rs, 0.4.6) writes fork-alert: "paused" = the network needs a newer miner (GPUs idle), "warning" = a model switch
+  # is scheduled (update before it)
+  _fk=; [[ -f $_ffgv_dir/fork-alert ]] && _fk=$(tr -cd 'a-z' < "$_ffgv_dir/fork-alert" | head -c 10)
+  [[ $_fk == paused ]] && _ver="$_ver, FORK: UPDATE MINER (paused)!!"
+  [[ $_fk == warning ]] && _ver="$_ver, FORK soon: update!!"
   stats=$(jq -nc \
     --argjson hs "$(printf '%s\n' "${_hs[@]}" | jq -sc .)" \
     --argjson temp "$(printf '%s\n' "${_t[@]}" | jq -sc .)" \

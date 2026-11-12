@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.5
+# FreeForGemVela (ffgv) 0.4.6
 
 Native GPU miner for **VELA** (Proof-of-Inference, integer sd-turbo) on NVIDIA RTX 30 / 40 / 50 and, new in 0.4.4 (Windows first),
 AMD Radeon RX 6800 / 6800 XT / 6900 XT / 6950 XT (Navi 21, Windows). HiveOS and Windows packages. Dev fee **1%**. Русская версия — [README.ru.md](README.ru.md).
@@ -12,14 +12,14 @@ AMD Radeon RX 6800 / 6800 XT / 6900 XT / 6950 XT (Navi 21, Windows). HiveOS and 
 
 ## Download
 
-Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.5
+Release page: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.6
 
 | package | file |
 |---|---|
-| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz |
-| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-0.4.5-linux-x86_64.tar.gz |
-| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-0.4.5-windows-x64.zip |
-| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/SHA256SUMS |
+| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-hive-0.4.6.tar.gz |
+| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-0.4.6-linux-x86_64.tar.gz |
+| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-0.4.6-windows-x64.zip |
+| checksums | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/SHA256SUMS |
 
 The miner binary is `ffgv` (`ffgv.exe` on Windows).
 
@@ -161,7 +161,7 @@ Miner **Custom** → Setup Miner Config:
 | field | value |
 |---|---|
 | Miner name | `ffgv-hive` (filled in from the URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-hive-0.4.6.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | see the pool examples below (several, space separated = failover) |
@@ -181,7 +181,7 @@ profile's values back. The HiveOS dashboard reads speed, temperatures, fans, acc
 
 ## Windows
 
-1. Unpack `ffgv-0.4.5-windows-x64.zip` to a folder without spaces, e.g. `C:\FreeForGemVela`.
+1. Unpack `ffgv-0.4.6-windows-x64.zip` to a folder without spaces, e.g. `C:\FreeForGemVela`.
 2. Right-click `start.bat` → Edit: set `WALLET` to **your** address (the example address is the developer's), `POOL`, `WORKER`,
    optionally `MODE=balance`.
 3. Run `start.bat` (as administrator if you use `MODE`, `AUTO_UV` or clock settings). The first start downloads the model
@@ -249,7 +249,8 @@ throttling or a slowdown of most GPUs at once is only logged; `--no-watchdog` tu
 ## Other options
 
 ```
---devices 0,1          GPUs to use (nvidia-smi / PCI order)        --batch N, --lanes N   (0 = auto)
+--devices 0,1          GPUs to use (nvidia-smi / PCI order)        --batch N, --lanes N   (0 = auto; auto = 2 lanes on an RTX 3070, an RTX 4070 Ti and a CMP 50HX, else 1; --lanes 1 = off)
+--lane-sync auto|on|off  2+ lanes of a card start every batch together (auto = on where it helps: RTX 3070, 3070 Laptop); MANUAL §4b
 --lock-cclock MHz      --lock-mclock MHz   --moffset MHz   --pl W   (one value for all GPUs or a list per GPU)
 --uv-offset MHz        fixed core offset (checked the same way)    --uv-min / --uv-max / --uv-step MHz (per GPU too)
 --auto-lock            pick the core lock per GPU (see above)      --auto-lock-range 1300-1800[:100] | L,L,...

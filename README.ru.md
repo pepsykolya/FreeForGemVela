@@ -1,4 +1,4 @@
-# FreeForGemVela (ffgv) 0.4.5
+# FreeForGemVela (ffgv) 0.4.6
 
 Собственный GPU-майнер для **VELA** (Proof-of-Inference, целочисленный sd-turbo) на NVIDIA RTX 30 / 40 / 50 (и CMP 50HX) и на AMD Radeon RX 6800 / 6800 XT / 6900 XT / 6950 XT (Navi 21, Windows).
 Пакеты для HiveOS, Linux и Windows. Комиссия разработчика **1%**. English — [README.md](README.md).
@@ -12,14 +12,14 @@
 
 ## Скачать
 
-Страница релиза: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.5
+Страница релиза: https://github.com/pepsykolya/FreeForGemVela/releases/tag/v0.4.6
 
 | пакет | файл |
 |---|---|
-| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz |
-| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-0.4.5-linux-x86_64.tar.gz |
-| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-0.4.5-windows-x64.zip |
-| контрольные суммы | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/SHA256SUMS |
+| HiveOS (custom miner) | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-hive-0.4.6.tar.gz |
+| Linux x86_64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-0.4.6-linux-x86_64.tar.gz |
+| Windows x64 | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-0.4.6-windows-x64.zip |
+| контрольные суммы | https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/SHA256SUMS |
 
 Бинарник майнера — `ffgv` (`ffgv.exe` в Windows).
 
@@ -161,7 +161,7 @@ RTX 3080 Ti: Windows 10, драйвер 591.59, Windows-пакет, запуск
 | поле | значение |
 |---|---|
 | Miner name | `ffgv-hive` (подставится из URL) |
-| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.5/ffgv-hive-0.4.5.tar.gz` |
+| Installation URL | `https://github.com/pepsykolya/FreeForGemVela/releases/download/v0.4.6/ffgv-hive-0.4.6.tar.gz` |
 | Hash algorithm | `vela` |
 | Wallet and worker template | `%WAL%.%WORKER_NAME%` |
 | Pool URL | см. примеры пулов ниже (несколько через пробел — резервные) |
@@ -181,7 +181,7 @@ OC-профиля. Панель HiveOS берёт скорость, темпер
 
 ## Windows
 
-1. Распакуйте `ffgv-0.4.5-windows-x64.zip` в папку без пробелов, например `C:\FreeForGemVela`.
+1. Распакуйте `ffgv-0.4.6-windows-x64.zip` в папку без пробелов, например `C:\FreeForGemVela`.
 2. Правой кнопкой по `start.bat` → «Изменить»: впишите в `WALLET` **свой** адрес (в примере стоит адрес разработчика),
    `POOL`, `WORKER`, при желании `MODE=balance`.
 3. Запустите `start.bat` (от администратора, если используете `MODE`, `AUTO_UV` или частоты). При первом запуске скачается
@@ -249,7 +249,8 @@ HiveOS / `start.bat` его перезапустили. `--uv-reset` забыв�
 ## Прочие параметры
 
 ```
---devices 0,1          какие карты (порядок nvidia-smi / PCI)      --batch N, --lanes N   (0 = авто)
+--devices 0,1          какие карты (порядок nvidia-smi / PCI)      --batch N, --lanes N   (0 = авто; авто = 2 лейны на RTX 3070, RTX 4070 Ti и CMP 50HX, иначе 1; --lanes 1 = выкл.)
+--lane-sync auto|on|off  лейны карты запускают каждый батч одновременно (auto = там, где это помогает: RTX 3070, 3070 Laptop); MANUAL §4б
 --lock-cclock МГц      --lock-mclock МГц   --moffset МГц   --pl Вт   (одно значение на все карты или список по картам)
 --uv-offset МГц        фиксированный офсет ядра (с той же проверкой)   --uv-min / --uv-max / --uv-step МГц (и по картам)
 --auto-lock            выбор лока ядра по картам (см. выше)        --auto-lock-range 1300-1800[:100] | L,L,...
